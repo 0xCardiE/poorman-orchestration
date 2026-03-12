@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import { GAME_HEIGHT, GAME_WIDTH } from "../src/game/config/dimensions";
 import { GOAL, GOAL_AREA, PENALTY_AREA, PITCH_BOUNDS } from "../src/game/config/pitch";
 import { MATCH_SCENE_KEY, MAIN_MENU_SCENE_KEY } from "../src/game/config/sceneKeys";
-import { createBallState, createPlayerState } from "../src/game/entities/matchEntities";
+import { createBallState } from "../src/game/entities/ball";
+import { createPlayerState } from "../src/game/entities/player";
 
 describe("project scaffold", () => {
   it("exports the base game dimensions", () => {
