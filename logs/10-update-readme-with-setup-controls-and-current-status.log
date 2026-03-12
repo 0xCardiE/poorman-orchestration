@@ -1,0 +1,5 @@
+Updated [README.md](/Users/marko/Documents/Experiments/browser-football-game/README.md#L5) to make the setup and current state explicit without changing code. The edits add the post-`npm run dev` browser step, include `npm run preview` in the command list, split controls into desktop and touch sections, and tighten the MVP status so it matches the implemented game flow and 60-second match behavior in [README.md](/Users/marko/Documents/Experiments/browser-football-game/README.md#L24) and [README.md](/Users/marko/Documents/Experiments/browser-football-game/README.md#L44).
+
+Verification was attempted with `npm run build`, `npm run test`, and `npm run lint`, but all three are currently blocked because this workspace has no `node_modules` installed, so local binaries like `tsc`, `vitest`, and `eslint` are not available.
+
+Short summary: I updated the README’s setup, controls, and current-status sections to match the actual game, and I verified that no code changes were needed.
