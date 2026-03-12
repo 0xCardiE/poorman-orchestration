@@ -21,9 +21,138 @@ body {
   padding: 24px;
 }
 
+.game-shell {
+  position: relative;
+  width: min(100%, 960px);
+}
+
 canvas {
   border: 2px solid rgba(244, 241, 222, 0.35);
+  display: block;
   border-radius: 16px;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
   max-width: 100%;
+}
+
+.touch-controls {
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.touch-controls[hidden] {
+  display: none;
+}
+
+.touch-controls__stick,
+.touch-controls__button {
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch-controls__stick {
+  align-items: center;
+  bottom: 20px;
+  display: flex;
+  height: 156px;
+  justify-content: center;
+  left: 20px;
+  position: absolute;
+  width: 156px;
+}
+
+.touch-controls__stick-base,
+.touch-controls__stick-thumb {
+  border-radius: 999px;
+  position: absolute;
+}
+
+.touch-controls__stick-base {
+  background: rgba(6, 18, 11, 0.28);
+  border: 2px solid rgba(244, 241, 222, 0.42);
+  inset: 0;
+}
+
+.touch-controls__stick-thumb {
+  background: rgba(244, 241, 222, 0.88);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  height: 58px;
+  width: 58px;
+}
+
+.touch-controls__actions {
+  align-items: end;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: absolute;
+  right: 20px;
+}
+
+.touch-controls__button {
+  background: rgba(244, 241, 222, 0.92);
+  border: 0;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  color: #123524;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  min-height: 54px;
+  min-width: 108px;
+}
+
+.touch-controls__button--shoot {
+  min-height: 64px;
+  min-width: 124px;
+}
+
+.touch-controls__button--menu {
+  min-height: 46px;
+  min-width: 88px;
+  position: absolute;
+  right: 20px;
+  top: 20px;
+}
+
+@media (pointer: fine) {
+  .touch-controls {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  #app {
+    padding: 8px;
+  }
+
+  .touch-controls__stick {
+    bottom: 12px;
+    height: 136px;
+    left: 12px;
+    width: 136px;
+  }
+
+  .touch-controls__actions {
+    bottom: 12px;
+    gap: 10px;
+    right: 12px;
+  }
+
+  .touch-controls__button {
+    font-size: 16px;
+    min-height: 48px;
+    min-width: 96px;
+  }
+
+  .touch-controls__button--shoot {
+    min-height: 56px;
+    min-width: 110px;
+  }
+
+  .touch-controls__button--menu {
+    right: 12px;
+    top: 12px;
+  }
 }

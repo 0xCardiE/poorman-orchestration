@@ -5,13 +5,23 @@ import type { PossessionState } from "../entities/possession";
 import { formatKickoffCountdown, formatMatchClock } from "./matchRules";
 
 export type MatchHud = {
+  controlsText: Phaser.GameObjects.Text;
   kickoffText: Phaser.GameObjects.Text;
+  footerText: Phaser.GameObjects.Text;
   scoreText: Phaser.GameObjects.Text;
   statusText: Phaser.GameObjects.Text;
   timerText: Phaser.GameObjects.Text;
 };
 
-export const createMatchHud = (scene: Phaser.Scene): MatchHud => {
+type MatchHudOptions = {
+  touchControlsEnabled?: boolean;
+};
+
+export const createMatchHud = (
+  scene: Phaser.Scene,
+  options: MatchHudOptions = {}
+): MatchHud => {
+  const touchControlsEnabled = options.touchControlsEnabled ?? false;
   const scoreText = scene.add.text(24, 18, "", {
     color: "#f4f1de",
     fontFamily: "Trebuchet MS",
@@ -39,10 +49,12 @@ export const createMatchHud = (scene: Phaser.Scene): MatchHud => {
     fontStyle: "bold"
   }).setOrigin(0.5, 0).setVisible(false);
 
-  scene.add.text(
+  const controlsText = scene.add.text(
     GAME_WIDTH - 24,
     18,
-    "Move: WASD / Arrows\nPass: Space\nShoot: Shift\nMenu: Esc",
+    touchControlsEnabled
+      ? "Move: touch pad\nPass: Pass button\nShoot: Shoot button\nMenu: Menu button"
+      : "Move: WASD / Arrows\nPass: Space\nShoot: Shift\nMenu: Esc",
     {
       align: "right",
       color: "#d9e6c3",
@@ -51,10 +63,12 @@ export const createMatchHud = (scene: Phaser.Scene): MatchHud => {
     }
   ).setOrigin(1, 0);
 
-  scene.add.text(
+  const footerText = scene.add.text(
     GAME_WIDTH / 2,
     GAME_HEIGHT - 18,
-    "Score in the right goal. Press Esc for the menu.",
+    touchControlsEnabled
+      ? "Score in the right goal. Touch Menu to leave the match."
+      : "Score in the right goal. Press Esc for the menu.",
     {
       color: "#f4f1de",
       fontFamily: "Trebuchet MS",
@@ -63,6 +77,8 @@ export const createMatchHud = (scene: Phaser.Scene): MatchHud => {
   ).setOrigin(0.5, 1);
 
   return {
+    controlsText,
+    footerText,
     kickoffText,
     scoreText,
     statusText,

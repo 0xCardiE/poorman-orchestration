@@ -1,8 +1,13 @@
-import { BALL_FOLLOW_DISTANCE, BALL_RECOVERY_DISTANCE } from "../config/ball";
+import {
+  BALL_FOLLOW_DISTANCE,
+  BALL_RECOVERY_DISTANCE
+} from "../config/ball";
 import type { BallState } from "../entities/ball";
 import type { OpponentState } from "../entities/opponent";
 import type { PlayerState } from "../entities/player";
 import type { PossessionOwner, PossessionState } from "../entities/possession";
+
+const BALL_CONTROL_SPEED = 120;
 
 export type Position = {
   x: number;
@@ -58,6 +63,12 @@ export const canRecoverBall = (
   ball: BallState,
   recoveryDistance: number = BALL_RECOVERY_DISTANCE
 ): boolean => {
+  const speed = Math.hypot(ball.velocityX, ball.velocityY);
+
+  if (speed > BALL_CONTROL_SPEED) {
+    return false;
+  }
+
   const distance = Math.hypot(player.x - ball.x, player.y - ball.y);
 
   return distance <= recoveryDistance;

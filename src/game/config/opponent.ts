@@ -1,4 +1,5 @@
 import { GAME_HEIGHT, GAME_WIDTH } from "./dimensions";
+import { PITCH_BOUNDS } from "./pitch";
 import { PLAYER_RADIUS } from "./player";
 
 export const OPPONENT_RADIUS = PLAYER_RADIUS;
@@ -23,3 +24,10 @@ export const OPPONENT_HOME_POSITION = {
 } as const;
 
 export const OPPONENT_TARGET_TOLERANCE = 12;
+export const OPPONENT_RETREAT_LINE_X = OPPONENT_HOME_POSITION.x + OPPONENT_TARGET_TOLERANCE;
+export const OPPONENT_ATTACK_TARGET = {
+  x: PITCH_BOUNDS.x + 220,
+  y: GAME_HEIGHT / 2
+} as const;
+export const OPPONENT_SHOOT_RANGE_X = PITCH_BOUNDS.x + 240;
+export const OPPONENT_SHOOT_ALIGNMENT_TOLERANCE = 28;

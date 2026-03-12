@@ -4,21 +4,18 @@ import type { OpponentState } from "../entities/opponent";
 import type { PlayerState } from "../entities/player";
 import type { PossessionState } from "../entities/possession";
 import { hasOpponentPossession, hasPlayerPossession } from "./ballPossession";
+import { getOpponentPossessionTarget, type OpponentTarget } from "./opponentDecision";
 import type { PlayerMovementInput } from "./playerMovement";
-
-export type OpponentTarget = {
-  x: number;
-  y: number;
-};
 
 export const getOpponentTarget = (
   possession: PossessionState,
+  opponent: OpponentState,
   player: PlayerState,
   ball: BallState,
   homePosition: OpponentTarget = OPPONENT_HOME_POSITION
 ): OpponentTarget => {
   if (hasOpponentPossession(possession)) {
-    return homePosition;
+    return getOpponentPossessionTarget(opponent, homePosition);
   }
 
   if (hasPlayerPossession(possession)) {
@@ -56,4 +53,4 @@ export const getOpponentMovementInput = (
   player: PlayerState,
   ball: BallState
 ): PlayerMovementInput =>
-  getMovementInputTowardsTarget(opponent, getOpponentTarget(possession, player, ball));
+  getMovementInputTowardsTarget(opponent, getOpponentTarget(possession, opponent, player, ball));

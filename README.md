@@ -31,6 +31,7 @@ npm run dev
 - `Esc` returns to the main menu.
 - `Enter` or `R` restarts after full time.
 - Mouse or touch can also use the on-screen restart and menu buttons shown at full time.
+- On touch-capable devices, a left thumb pad moves the player, `Pass` and `Shoot` buttons appear on the right, and a `Menu` button appears at the top-right during the match.
 - Movement, passing, and shooting stay locked during the brief kickoff countdown at match start and after goals.
 
 ## Gameplay
@@ -39,7 +40,7 @@ npm run dev
 - You start each kickoff in possession.
 - A brief kickoff countdown resets both players and the ball to their starting spots before play resumes.
 - Score by sending a loose ball into the right goal.
-- The opponent chases the ball carrier, contests loose balls, and retreats with possession.
+- The opponent chases the ball carrier, contests loose balls, retreats to reset after turnovers, then carries into range and shoots at the left goal.
 - After a goal, play resets from midfield.
 - At full time, the result overlay shows the outcome, final score, and restart options.
 
@@ -66,10 +67,11 @@ npm run dev
 - Implemented: HUD for score, timer, possession state, and controls reminder.
 - Implemented: full-time overlay with keyboard and clickable/tappable restart/menu actions.
 - Not implemented: online play, accounts, backend features, advanced physics, commentary, tournaments.
-- Deferred: mobile gameplay controls. Touch support is currently limited to menu and full-time buttons so desktop keyboard play remains stable late in MVP development.
+- Implemented: minimal mobile gameplay controls for touch-capable devices, including movement, pass, shoot, and an in-match menu button.
 
 ## Known Limitations
 
 - Only one human-controlled player and one AI opponent are present.
 - The opponent AI is intentionally simple and does not use team tactics or complex pathfinding.
 - Ball physics are arcade-style and do not include rebounds, spin, or advanced collisions.
+- Mobile controls are intentionally simple: the movement pad gives eight-direction digital movement rather than a full analog virtual gamepad.

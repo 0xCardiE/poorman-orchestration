@@ -1,15 +1,14 @@
 ## Goal
-Add the first playable game flow with a main menu scene and a match scene that renders a simple football pitch.
+Add a short kickoff reset flow so match starts and post-goal restarts are clearer and easier to read during play.
 
 ## Acceptance Criteria
-- The game boots into a main menu scene with a clear way to start a match.
-- Starting the match transitions into a dedicated match scene.
-- The match scene renders a recognizable pitch with boundaries and goals/goal areas marked simply.
-- Scene setup is organized under `src/game/scenes` and reusable configuration is kept in `src/game/config`.
-- The project still builds successfully after the scene flow is added.
+- A kickoff state exists at match start and after each goal.
+- During kickoff reset, player, opponent, and ball positions return to their starting locations.
+- A short visible countdown or status message signals when play becomes active again.
+- Player movement and ball actions are disabled until the kickoff state ends.
+- Any extracted kickoff timing or state transition logic that is framework-light has test coverage.
 
 ## Constraints
-- Keep visuals simple and code readable.
-- Separate scene rendering concerns from future gameplay systems where practical.
-- Do not implement ball logic, scoring, or AI in this task.
-- Keep the game playable after the scene transition is introduced.
+- Keep the flow fast enough for short sessions.
+- Do not add new scenes for kickoff handling.
+- Reuse existing match state and HUD patterns where practical.

@@ -1,0 +1,2 @@
+export const TOUCH_STICK_DEAD_ZONE = 0.25;
+export const TOUCH_STICK_TRAVEL_RATIO = 0.36;

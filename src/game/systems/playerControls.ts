@@ -1,4 +1,9 @@
 import Phaser from "phaser";
+import {
+  getEmptyActionInput,
+  getEmptyMovementInput,
+  type PlayerActionInput
+} from "./playerInput";
 import type { PlayerMovementInput } from "./playerMovement";
 
 export type PlayerControls = {
@@ -9,11 +14,6 @@ export type PlayerControls = {
   right: Phaser.Input.Keyboard.Key;
   shoot: Phaser.Input.Keyboard.Key;
   up: Phaser.Input.Keyboard.Key;
-};
-
-export type PlayerActionInput = {
-  pass: boolean;
-  shoot: boolean;
 };
 
 export const createPlayerControls = (scene: Phaser.Scene): PlayerControls | null => {
@@ -36,12 +36,7 @@ export const createPlayerControls = (scene: Phaser.Scene): PlayerControls | null
 
 export const readPlayerMovementInput = (controls: PlayerControls | null): PlayerMovementInput => {
   if (!controls) {
-    return {
-      down: false,
-      left: false,
-      right: false,
-      up: false
-    };
+    return getEmptyMovementInput();
   }
 
   return {
@@ -54,10 +49,7 @@ export const readPlayerMovementInput = (controls: PlayerControls | null): Player
 
 export const readPlayerActionInput = (controls: PlayerControls | null): PlayerActionInput => {
   if (!controls) {
-    return {
-      pass: false,
-      shoot: false
-    };
+    return getEmptyActionInput();
   }
 
   return {

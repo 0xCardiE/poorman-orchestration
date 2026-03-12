@@ -15,7 +15,7 @@ import { createInitialPossessionState } from "../entities/possession";
 import { createPassedBall, createShotBall, updateBallMotion } from "../systems/ballMotion";
 import {
   hasPlayerPossession,
-  releasePlayerPossession,
+  releasePossession,
   syncBallWithPossession,
   updatePossession
 } from "../systems/ballPossession";
@@ -36,6 +36,10 @@ import {
 } from "../systems/matchRules";
 import { createMatchHud, refreshMatchHud, type MatchHud } from "../systems/matchHud";
 import { getOpponentMovementInput } from "../systems/opponentAi";
+import {
+  decideOpponentPossessionAction,
+  getLeftGoalTarget
+} from "../systems/opponentDecision";
 import { createOpponentSprite, syncOpponentSprite } from "../systems/opponentRenderer";
 import {
   createPlayerControls,
@@ -43,8 +47,16 @@ import {
   readPlayerMovementInput,
   type PlayerControls
 } from "../systems/playerControls";
+import {
+  mergePlayerActionInput,
+  mergePlayerMovementInput
+} from "../systems/playerInput";
 import { getNextPlayerState } from "../systems/playerMovement";
 import { createPlayerSprite, syncPlayerSprite } from "../systems/playerRenderer";
+import {
+  createTouchControls,
+  type TouchControls
+} from "../systems/touchControls";
 
 export class MatchScene extends Phaser.Scene {
   private ballSprite?: Phaser.GameObjects.Arc;
@@ -58,6 +70,7 @@ export class MatchScene extends Phaser.Scene {
   private playerSprite?: Phaser.GameObjects.Arc;
   private playerState?: PlayerState;
   private possessionState?: PossessionState;
+  private touchControls: TouchControls | null = null;
 
   constructor() {
     super(MATCH_SCENE_KEY);
@@ -70,7 +83,12 @@ export class MatchScene extends Phaser.Scene {
     this.setupKickoff();
     this.createSprites();
     this.playerControls = createPlayerControls(this);
-    this.hud = createMatchHud(this);
+    this.touchControls = createTouchControls(this.game.canvas.parentElement, {
+      onMenu: () => this.returnToMenu()
+    });
+    this.hud = createMatchHud(this, {
+      touchControlsEnabled: this.touchControls !== null
+    });
     this.fullTimeOverlay = createFullTimeOverlay(this, {
       onMenu: () => this.returnToMenu(),
       onRestart: () => this.restartMatch()
@@ -84,6 +102,8 @@ export class MatchScene extends Phaser.Scene {
       this.input.keyboard?.off("keydown-ESC", this.returnToMenu, this);
       this.input.keyboard?.off("keydown-ENTER", this.restartMatch, this);
       this.input.keyboard?.off("keydown-R", this.restartMatch, this);
+      this.touchControls?.destroy();
+      this.touchControls = null;
     });
   }
 
@@ -106,17 +126,26 @@ export class MatchScene extends Phaser.Scene {
     const playableDelta = matchAdvance.playableDeltaMs;
 
     if (playableDelta === 0) {
-      readPlayerActionInput(this.playerControls);
+      void mergePlayerActionInput(
+        readPlayerActionInput(this.playerControls),
+        this.touchControls?.readActionInput()
+      );
       this.refreshHud();
       return;
     }
 
-    const actionInput = readPlayerActionInput(this.playerControls);
+    const actionInput = mergePlayerActionInput(
+      readPlayerActionInput(this.playerControls),
+      this.touchControls?.readActionInput()
+    );
     let scoringSide: "opponent" | "player" | null = null;
 
     this.playerState = getNextPlayerState(
       this.playerState,
-      readPlayerMovementInput(this.playerControls),
+      mergePlayerMovementInput(
+        readPlayerMovementInput(this.playerControls),
+        this.touchControls?.readMovementInput()
+      ),
       playableDelta
     );
 
@@ -142,21 +171,36 @@ export class MatchScene extends Phaser.Scene {
       );
 
       if (actionInput.shoot) {
-        this.possessionState = releasePlayerPossession(this.possessionState);
+        this.possessionState = releasePossession(this.possessionState);
         this.ballState = createShotBall(attachedBall, this.playerState.facing);
       } else if (actionInput.pass) {
-        this.possessionState = releasePlayerPossession(this.possessionState);
+        this.possessionState = releasePossession(this.possessionState);
         this.ballState = createPassedBall(attachedBall, this.playerState.facing);
       } else {
         this.ballState = attachedBall;
       }
     } else if (this.possessionState.owner === "opponent") {
-      this.ballState = syncBallWithPossession(
+      const attachedBall = syncBallWithPossession(
         this.ballState,
         this.possessionState,
         this.playerState,
         this.opponentState
       );
+
+      if (decideOpponentPossessionAction(this.opponentState) === "shoot") {
+        const goalTarget = getLeftGoalTarget();
+        const deltaX = goalTarget.x - this.opponentState.x;
+        const deltaY = goalTarget.y - this.opponentState.y;
+        const distance = Math.hypot(deltaX, deltaY) || 1;
+
+        this.possessionState = releasePossession(this.possessionState);
+        this.ballState = createShotBall(attachedBall, {
+          x: deltaX / distance,
+          y: deltaY / distance
+        });
+      } else {
+        this.ballState = attachedBall;
+      }
     } else {
       this.ballState = updateBallMotion(this.ballState, playableDelta);
       scoringSide = getGoalScorer(this.ballState);
@@ -213,6 +257,7 @@ export class MatchScene extends Phaser.Scene {
     }
 
     refreshMatchHud(this.hud, this.matchState, this.possessionState);
+    this.touchControls?.setVisible(this.matchState.phase !== "finished");
 
     if (this.matchState.phase === "finished") {
       showFullTimeOverlay(this.fullTimeOverlay, this.matchState);
@@ -233,6 +278,10 @@ export class MatchScene extends Phaser.Scene {
     this.refreshHud();
   }
 
+  private returnToMenu(): void {
+    this.scene.start(MAIN_MENU_SCENE_KEY);
+  }
+
   private setupKickoff(): void {
     this.playerState = createPlayerState();
     this.opponentState = createOpponentState();
@@ -249,9 +298,5 @@ export class MatchScene extends Phaser.Scene {
       syncOpponentSprite(this.opponentSprite, this.opponentState);
       syncBallSprite(this.ballSprite, this.ballState);
     }
-  }
-
-  private returnToMenu(): void {
-    this.scene.start(MAIN_MENU_SCENE_KEY);
   }
 }

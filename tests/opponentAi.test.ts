@@ -42,7 +42,7 @@ describe("opponent AI", () => {
       owner: "player"
     };
 
-    expect(getOpponentTarget(possession, TEST_PLAYER, TEST_BALL)).toEqual({
+    expect(getOpponentTarget(possession, TEST_OPPONENT, TEST_PLAYER, TEST_BALL)).toEqual({
       x: TEST_PLAYER.x,
       y: TEST_PLAYER.y
     });
@@ -53,25 +53,25 @@ describe("opponent AI", () => {
       owner: null
     };
 
-    expect(getOpponentTarget(possession, TEST_PLAYER, TEST_BALL)).toEqual({
+    expect(getOpponentTarget(possession, TEST_OPPONENT, TEST_PLAYER, TEST_BALL)).toEqual({
       x: TEST_BALL.x,
       y: TEST_BALL.y
     });
   });
 
-  it("returns home with the ball after winning possession", () => {
+  it("switches to its possession route after winning the ball", () => {
     const possession: PossessionState = {
       owner: "opponent"
     };
 
     expect(
-      getOpponentTarget(possession, TEST_PLAYER, TEST_BALL, {
+      getOpponentTarget(possession, TEST_OPPONENT, TEST_PLAYER, TEST_BALL, {
         x: 500,
         y: 120
       })
     ).toEqual({
-      x: 500,
-      y: 120
+      x: 256,
+      y: 270
     });
   });
 

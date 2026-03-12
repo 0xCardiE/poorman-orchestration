@@ -69,7 +69,7 @@ export const showFullTimeOverlay = (
   match: MatchState
 ): void => {
   overlay.resultText.setText(
-    `${getMatchResultText(match)}\nFinal Score ${match.playerScore} - ${match.opponentScore}\nPress Enter or R to restart`
+    `${getMatchResultText(match)}\nFinal Score ${match.playerScore} - ${match.opponentScore}\nUse Restart below or press Enter / R`
   );
   setFullTimeOverlayVisible(overlay, true);
 };
