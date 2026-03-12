@@ -77,6 +77,7 @@ export class MatchScene extends Phaser.Scene {
 
     if (this.kickoffTimer > 0) {
       this.kickoffTimer -= deltaSec;
+      this.drawOverlays();
       return;
     }
 
@@ -188,10 +189,15 @@ export class MatchScene extends Phaser.Scene {
     if (kickoffTo === 'player') {
       this.playerHasBall = true;
       this.ball.isFree = false;
+      this.ball.followOwner(cx - 100, cy, this.player.facing.x, this.player.facing.y);
     } else {
       this.playerHasBall = false;
       this.opponent.hasBall = true;
       this.ball.isFree = false;
+      this.ball.followOwner(
+        this.opponent.sprite.x, this.opponent.sprite.y,
+        this.opponent.facing.x, this.opponent.facing.y,
+      );
     }
   }
 
@@ -379,7 +385,9 @@ export class MatchScene extends Phaser.Scene {
   private setupMobileControls(): void {
     if (!this.sys.game.device.input.touch) return;
 
-    this.input.addPointer(1);
+    if (this.input.manager.pointers.length < 3) {
+      this.input.addPointer(1);
+    }
 
     const passBtn = this.add
       .text(GAME_WIDTH - 70, GAME_HEIGHT - 75, 'PASS', {
