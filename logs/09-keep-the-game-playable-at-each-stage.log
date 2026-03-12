@@ -1,0 +1,7 @@
+I changed the match scene lifecycle so restart and scene transitions clean up touch/input listeners instead of leaving stale handlers behind. That keeps repeated restarts from degrading playability, especially on touch devices. The scene cleanup is in [src/game/scenes/MatchScene.ts](/Users/marko/Documents/Experiments/browser-football-game/src/game/scenes/MatchScene.ts#L107) and [src/game/scenes/MatchScene.ts](/Users/marko/Documents/Experiments/browser-football-game/src/game/scenes/MatchScene.ts#L510).
+
+I also added regression coverage for two gameplay transitions in [tests/matchSystem.test.ts](/Users/marko/Documents/Experiments/browser-football-game/tests/matchSystem.test.ts#L32): after a goal, the match resets into a valid kickoff state, and when time expires, the match ends cleanly with the ball stopped. README was not changed because controls and visible behavior did not change.
+
+Verification: I attempted `npm run test`, `npm run build`, and `npm run lint`, but this workspace does not currently have the project tools installed, so `vitest`, `tsc`/`vite`, and `eslint` were not available.
+
+Short summary: cleaned up match-scene input lifecycle to keep restarts playable, added tests for post-goal reset and full-time end state, and left user-facing behavior unchanged. Remaining work is just to install dependencies and run the normal checks.

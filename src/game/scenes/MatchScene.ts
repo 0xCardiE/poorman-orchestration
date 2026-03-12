@@ -107,6 +107,8 @@ export class MatchScene extends Phaser.Scene {
       passQueued: false,
       shootQueued: false,
     };
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.handleSceneShutdown, this);
+    this.events.once(Phaser.Scenes.Events.DESTROY, this.handleSceneShutdown, this);
     this.drawPitch();
     this.createActors();
     this.createHud();
@@ -506,6 +508,18 @@ export class MatchScene extends Phaser.Scene {
       TOUCH_MOVE_CENTER.x + (Math.cos(angle) * distance),
       TOUCH_MOVE_CENTER.y + (Math.sin(angle) * distance),
     );
+  }
+
+  private handleSceneShutdown(): void {
+    this.input.off('pointerdown', this.handleTouchPointerDown, this);
+    this.input.off('pointermove', this.handleTouchPointerMove, this);
+    this.input.off('pointerup', this.handleTouchPointerUp, this);
+    this.input.off('pointerupoutside', this.handleTouchPointerUp, this);
+    this.touchControls.movePointerId = null;
+    this.touchControls.moveInput = { x: 0, y: 0 };
+    this.touchControls.passQueued = false;
+    this.touchControls.shootQueued = false;
+    this.touchControls.moveStick = undefined;
   }
 
   private isTouchEnabled(): boolean {
