@@ -1,86 +1,131 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(pwd)"
 TASKS_DIR="$ROOT_DIR/tasks"
+TODO_DIR="$TASKS_DIR/todo"
+DONE_DIR="$TASKS_DIR/done"
+FAILED_DIR="$TASKS_DIR/failed"
 LOGS_DIR="$ROOT_DIR/logs"
 
-mkdir -p "$LOGS_DIR"
+mkdir -p "$TODO_DIR" "$DONE_DIR" "$FAILED_DIR" "$LOGS_DIR"
 
+echo "Autonomous Codex runner starting..."
+
+# check codex
 if ! command -v codex >/dev/null 2>&1; then
-  echo "Error: codex is not installed or not in PATH."
+  echo "Codex CLI not installed."
   exit 1
 fi
 
+# create AGENTS.md automatically if missing
 if [ ! -f "$ROOT_DIR/AGENTS.md" ]; then
-  echo "Error: AGENTS.md not found in repo root."
-  exit 1
-fi
+  echo "Creating default AGENTS.md"
+  cat <<EOF > AGENTS.md
+# Agent instructions
 
-if [ ! -d "$TASKS_DIR" ]; then
-  echo "Error: tasks directory not found."
-  exit 1
-fi
-
-echo "Starting Codex task runner..."
-echo "Repo: $ROOT_DIR"
-echo "Tasks: $TASKS_DIR"
-echo
-
-shopt -s nullglob
-TASK_FILES=("$TASKS_DIR"/*.md)
-
-if [ ${#TASK_FILES[@]} -eq 0 ]; then
-  echo "No task files found in $TASKS_DIR"
-  exit 1
-fi
-
-for task_file in "${TASK_FILES[@]}"; do
-  task_name="$(basename "$task_file" .md)"
-  log_file="$LOGS_DIR/${task_name}.log"
-
-  echo "=================================================="
-  echo "Running task: $task_name"
-  echo "Log: $log_file"
-  echo "=================================================="
-
-  PROMPT=$(
-    cat <<EOF
-Read AGENTS.md first.
-
-Then execute the task described in $(basename "$task_file").
+You are working inside this repository.
 
 Rules:
-- Work only within this repository.
-- Preserve existing working functionality.
-- Keep changes minimal and practical.
-- Do not refactor unrelated code.
-- Run the relevant build/test commands if available.
-- Update README.md if setup, controls, or behavior changed.
-- When finished, print a short summary of what you changed.
-
-Task file contents:
-$(cat "$task_file")
+- Keep changes minimal and safe
+- Do not break existing functionality
+- Inspect the repository before changes
+- Prefer small modular code
+- Install dependencies if package.json exists
+- Run build/test/lint when available
 EOF
-  )
+fi
 
-  if ! codex exec "$PROMPT" | tee "$log_file"; then
+# bootstrap dependencies
+if [ -f package.json ] && [ ! -d node_modules ]; then
+  echo "Installing dependencies..."
+  npm install
+fi
+
+# if no tasks exist, ask Codex to generate them
+if [ -z "$(ls -A "$TODO_DIR")" ]; then
+  echo "Generating initial tasks with Codex..."
+
+  codex exec "
+Read AGENTS.md.
+
+Analyze the repository and create a series of development tasks.
+
+Create multiple markdown files in tasks/todo/ named like:
+
+01-task.md
+02-task.md
+03-task.md
+
+Each file must contain:
+- goal
+- acceptance criteria
+- constraints
+
+The tasks should progress logically and be small.
+"
+fi
+
+run_task() {
+  local task_file="$1"
+  local task_name
+  task_name="$(basename "$task_file")"
+  log_file="$LOGS_DIR/${task_name}.log"
+
+  echo "Running task $task_name"
+
+  if ! {
+    echo "Read AGENTS.md first."
     echo
-    echo "Task failed: $task_name"
-    echo "See log: $log_file"
-    exit 1
+    echo "Execute task $task_name"
+    echo
+    cat "$task_file"
+  } | codex exec | tee "$log_file"; then
+    echo "Task failed"
+    mv "$task_file" "$FAILED_DIR/"
+    return 1
   fi
 
-  if ! git diff --quiet || ! git diff --cached --quiet; then
-    git add -A
-    git commit -m "codex: complete $task_name" || true
-  else
-    echo "No file changes detected for $task_name"
+  # optional verification
+  if [ -f package.json ]; then
+    npm run build || true
   fi
 
-  echo
-  echo "Finished task: $task_name"
-  echo
+  git add -A || true
+  git commit -m "codex completed $task_name" || true
+
+  mv "$task_file" "$DONE_DIR/"
+}
+
+while true; do
+
+  shopt -s nullglob
+  TASKS=("$TODO_DIR"/*.md)
+
+  if [ ${#TASKS[@]} -eq 0 ]; then
+    echo "No tasks left."
+
+    echo "Asking Codex if more tasks are needed..."
+
+    codex exec "
+Read AGENTS.md and the repository.
+
+If the project is unfinished, generate additional tasks in tasks/todo/.
+
+If the project is complete, say COMPLETE.
+"
+
+    sleep 1
+    TASKS=("$TODO_DIR"/*.md)
+
+    if [ ${#TASKS[@]} -eq 0 ]; then
+      echo "Project appears complete."
+      break
+    fi
+  fi
+
+  run_task "${TASKS[0]}"
+
 done
 
-echo "All tasks completed."
+echo "Runner finished."
