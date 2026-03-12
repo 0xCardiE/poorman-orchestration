@@ -1,17 +1,26 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config/dimensions";
 import { MAIN_MENU_SCENE_KEY, MATCH_SCENE_KEY } from "../config/sceneKeys";
+import type { BallState } from "../entities/ball";
+import { createBallState } from "../entities/ball";
 import type { PlayerState } from "../entities/player";
 import { createPlayerState } from "../entities/player";
+import type { PossessionState } from "../entities/possession";
+import { createInitialPossessionState } from "../entities/possession";
+import { syncBallWithPossession } from "../systems/ballPossession";
+import { createBallSprite, syncBallSprite } from "../systems/ballRenderer";
 import { drawPitch } from "../systems/drawPitch";
 import { createPlayerControls, readPlayerMovementInput, type PlayerControls } from "../systems/playerControls";
 import { getNextPlayerState } from "../systems/playerMovement";
 import { createPlayerSprite, syncPlayerSprite } from "../systems/playerRenderer";
 
 export class MatchScene extends Phaser.Scene {
+  private ballSprite?: Phaser.GameObjects.Arc;
+  private ballState?: BallState;
   private playerControls: PlayerControls | null = null;
   private playerSprite?: Phaser.GameObjects.Arc;
   private playerState?: PlayerState;
+  private possessionState?: PossessionState;
 
   constructor() {
     super(MATCH_SCENE_KEY);
@@ -21,6 +30,13 @@ export class MatchScene extends Phaser.Scene {
     drawPitch(this);
 
     this.playerState = createPlayerState();
+    this.possessionState = createInitialPossessionState();
+    this.ballState = syncBallWithPossession(
+      createBallState(this.playerState),
+      this.possessionState,
+      this.playerState
+    );
+    this.ballSprite = createBallSprite(this, this.ballState);
     this.playerSprite = createPlayerSprite(this, this.playerState);
     this.playerControls = createPlayerControls(this);
 
@@ -50,7 +66,13 @@ export class MatchScene extends Phaser.Scene {
   }
 
   update(_time: number, delta: number): void {
-    if (!this.playerState || !this.playerSprite) {
+    if (
+      !this.ballSprite ||
+      !this.ballState ||
+      !this.playerState ||
+      !this.playerSprite ||
+      !this.possessionState
+    ) {
       return;
     }
 
@@ -59,7 +81,14 @@ export class MatchScene extends Phaser.Scene {
       readPlayerMovementInput(this.playerControls),
       delta
     );
+    this.ballState = syncBallWithPossession(
+      this.ballState,
+      this.possessionState,
+      this.playerState
+    );
+
     syncPlayerSprite(this.playerSprite, this.playerState);
+    syncBallSprite(this.ballSprite, this.ballState);
   }
 
   private returnToMenu(): void {

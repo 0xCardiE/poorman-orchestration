@@ -16,7 +16,7 @@ Start the local dev server:
 npm run dev
 ```
 
-Start a match from the main menu with the on-screen button or by pressing `Enter` / `Space`. In the match scene, move the player with `WASD` or the arrow keys, and press `Esc` to return to the menu.
+Start a match from the main menu with the on-screen button or by pressing `Enter` / `Space`. In the match scene, move the player with `WASD` or the arrow keys, and press `Esc` to return to the menu. The player begins each match in possession, with the ball following their movement.
 
 ## Available Commands
 
@@ -37,4 +37,4 @@ Start a match from the main menu with the on-screen button or by pressing `Enter
 
 ## Current Status
 
-The project now boots into a main menu and transitions into a dedicated match scene that renders a simple football pitch with touchlines, a halfway line, penalty areas, goal areas, and goals. One controllable player can move around the pitch and is clamped to the field bounds. Ball interaction, passing, shooting, AI, score, and timer logic have not been implemented yet.
+The project now boots into a main menu and transitions into a dedicated match scene that renders a simple football pitch with touchlines, a halfway line, penalty areas, goal areas, and goals. One controllable player can move around the pitch and is clamped to the field bounds. The match starts with the player in possession, and the ball follows the player's facing direction using simple gameplay state rather than physics. Passing, shooting, AI, score, and timer logic have not been implemented yet.

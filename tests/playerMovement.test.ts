@@ -15,6 +15,10 @@ const TEST_BOUNDS = {
 } as const;
 
 const TEST_PLAYER: PlayerState = {
+  facing: {
+    x: 1,
+    y: 0
+  },
   x: 150,
   y: 120,
   radius: 18
@@ -54,6 +58,10 @@ describe("player movement", () => {
   it("clamps the player inside the pitch bounds", () => {
     const clampedState = clampPlayerToBounds(
       {
+        facing: {
+          x: 1,
+          y: 0
+        },
         x: 95,
         y: 260,
         radius: 18
@@ -62,9 +70,46 @@ describe("player movement", () => {
     );
 
     expect(clampedState).toEqual({
+      facing: {
+        x: 1,
+        y: 0
+      },
       x: 118,
       y: 202,
       radius: 18
     });
+  });
+
+  it("updates facing while moving and keeps it while idle", () => {
+    const movedState = getNextPlayerState(
+      TEST_PLAYER,
+      {
+        up: true,
+        down: false,
+        left: false,
+        right: false
+      },
+      100,
+      TEST_BOUNDS
+    );
+
+    expect(movedState.facing).toEqual({
+      x: 0,
+      y: -1
+    });
+
+    const idleState = getNextPlayerState(
+      movedState,
+      {
+        up: false,
+        down: false,
+        left: false,
+        right: false
+      },
+      100,
+      TEST_BOUNDS
+    );
+
+    expect(idleState.facing).toEqual(movedState.facing);
   });
 });

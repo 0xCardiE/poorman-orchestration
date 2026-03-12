@@ -39,12 +39,19 @@ describe("project scaffold", () => {
 
   it("creates the starter match entities", () => {
     expect(createPlayerState()).toEqual({
+      facing: {
+        x: 1,
+        y: 0
+      },
       x: 320,
       y: 270,
       radius: 18
     });
-    expect(createBallState()).toEqual({
-      x: 420,
+    expect(createBallState({
+      x: 320,
+      y: 270
+    })).toEqual({
+      x: 320,
       y: 270,
       radius: 8
     });

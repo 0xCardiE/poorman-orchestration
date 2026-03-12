@@ -8,3 +8,8 @@ export const PLAYER_START_POSITION = {
   x: 320,
   y: 270
 } as const;
+
+export const PLAYER_DEFAULT_FACING = {
+  x: 1,
+  y: 0
+} as const;

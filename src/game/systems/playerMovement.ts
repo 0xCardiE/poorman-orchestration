@@ -58,10 +58,14 @@ export const getNextPlayerState = (
 ): PlayerState => {
   const direction = getPlayerMovementVector(input);
   const distance = speed * (deltaMs / 1000);
+  const facing = direction.x === 0 && direction.y === 0
+    ? player.facing
+    : direction;
 
   return clampPlayerToBounds(
     {
       ...player,
+      facing,
       x: player.x + direction.x * distance,
       y: player.y + direction.y * distance
     },
