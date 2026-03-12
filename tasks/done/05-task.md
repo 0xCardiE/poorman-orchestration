@@ -1,15 +1,13 @@
 ## Goal
-Add pass and shoot actions using the existing movement direction and ball logic.
+Reduce the production bundle warning and improve initial load behavior with a small, targeted build optimization pass.
 
 ## Acceptance Criteria
-- The player can trigger a pass action from possession.
-- The player can trigger a stronger shoot action from possession.
-- After a pass or shot, the ball travels independently until possession is regained or the ball stops.
-- Controls for pass and shoot are documented in `README.md`.
-- The project builds successfully and relevant logic tests are updated.
+- The current large-chunk build warning is reduced or removed through a focused change such as code splitting or chunk configuration.
+- The game still boots into the main menu and match flow without regressions after the build change.
+- Build configuration changes are kept small and documented if they affect development or deployment.
+- `npm run build` still passes after the optimization.
 
 ## Constraints
-- Keep pass and shot behavior readable and intentionally arcade-like.
-- Reuse shared ball systems instead of duplicating movement logic.
-- Do not add scoring rules or opponent behavior in this task.
-- Avoid overengineering aiming or input systems.
+- Do not replace Phaser or restructure the whole app around a new loading architecture.
+- Avoid premature micro-optimizations outside the main bundle-size issue.
+- Keep the change easy to reason about for future gameplay work.
