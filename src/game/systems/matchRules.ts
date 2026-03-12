@@ -55,6 +55,14 @@ export const awardGoal = (match: MatchState, side: ScoringSide): MatchState =>
       opponentScore: match.opponentScore + 1
     };
 
+export const getPlayableDeltaMs = (match: MatchState, deltaMs: number): number => {
+  if (match.phase === "finished") {
+    return 0;
+  }
+
+  return Math.min(deltaMs, match.remainingMs);
+};
+
 export const tickMatchClock = (match: MatchState, deltaMs: number): MatchState => {
   if (match.phase === "finished") {
     return match;

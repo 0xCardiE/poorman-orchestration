@@ -26,6 +26,12 @@ export class MainMenuScene extends Phaser.Scene {
       fontSize: "20px"
     }).setOrigin(0.5);
 
+    this.add.text(GAME_WIDTH / 2, 256, "60-second match. Score in the right goal before time expires.", {
+      color: "#f4f1de",
+      fontFamily: "Trebuchet MS",
+      fontSize: "18px"
+    }).setOrigin(0.5);
+
     const startButton = this.add.rectangle(GAME_WIDTH / 2, 320, 260, 72, BUTTON_COLOR);
     startButton.setInteractive({ useHandCursor: true });
     startButton.on("pointerup", this.startMatch, this);
@@ -37,11 +43,22 @@ export class MainMenuScene extends Phaser.Scene {
       fontStyle: "bold"
     }).setOrigin(0.5);
 
-    this.add.text(GAME_WIDTH / 2, 390, "Click the button or press Enter / Space", {
+    this.add.text(GAME_WIDTH / 2, 390, "Click or tap the button, or press Enter / Space", {
       color: "#d8ecd2",
       fontFamily: "Trebuchet MS",
       fontSize: "18px"
     }).setOrigin(0.5);
+
+    this.add.text(
+      GAME_WIDTH / 2,
+      448,
+      "Move: WASD / Arrows   Pass: Space   Shoot: Shift   Menu: Esc",
+      {
+        color: "#d8ecd2",
+        fontFamily: "Trebuchet MS",
+        fontSize: "18px"
+      }
+    ).setOrigin(0.5);
 
     this.input.keyboard?.once("keydown-ENTER", this.startMatch, this);
     this.input.keyboard?.once("keydown-SPACE", this.startMatch, this);

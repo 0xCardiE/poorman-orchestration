@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { createMatchState } from "../src/game/entities/match";
-import { awardGoal, formatMatchClock, getGoalScorer, tickMatchClock } from "../src/game/systems/matchRules";
+import {
+  awardGoal,
+  formatMatchClock,
+  getGoalScorer,
+  getPlayableDeltaMs,
+  tickMatchClock
+} from "../src/game/systems/matchRules";
 
 describe("match rules", () => {
   it("awards the player a goal when the loose ball reaches the right goal", () => {
@@ -57,6 +63,18 @@ describe("match rules", () => {
 
     expect(finishedMatch.remainingMs).toBe(0);
     expect(finishedMatch.phase).toBe("finished");
+  });
+
+  it("limits simulation time to the time left in the match", () => {
+    expect(
+      getPlayableDeltaMs(
+        {
+          ...createMatchState(),
+          remainingMs: 120
+        },
+        250
+      )
+    ).toBe(120);
   });
 
   it("formats the remaining clock time for the HUD", () => {
