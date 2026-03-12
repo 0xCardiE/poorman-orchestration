@@ -51,6 +51,8 @@ describe("project scaffold", () => {
       x: 320,
       y: 270
     })).toEqual({
+      velocityX: 0,
+      velocityY: 0,
       x: 320,
       y: 270,
       radius: 8

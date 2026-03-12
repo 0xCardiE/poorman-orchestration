@@ -3,9 +3,12 @@ import type { BallState } from "../src/game/entities/ball";
 import type { PlayerState } from "../src/game/entities/player";
 import { createInitialPossessionState } from "../src/game/entities/possession";
 import {
+  canPlayerRecoverBall,
   getBallFollowPosition,
   hasPlayerPossession,
-  syncBallWithPossession
+  releasePlayerPossession,
+  syncBallWithPossession,
+  updatePlayerPossession
 } from "../src/game/systems/ballPossession";
 
 const TEST_PLAYER: PlayerState = {
@@ -19,6 +22,8 @@ const TEST_PLAYER: PlayerState = {
 };
 
 const TEST_BALL: BallState = {
+  velocityX: 0,
+  velocityY: 0,
   x: 120,
   y: 90,
   radius: 8
@@ -44,6 +49,8 @@ describe("ball possession", () => {
     );
 
     expect(ballState).toEqual({
+      velocityX: 0,
+      velocityY: 0,
       x: 200,
       y: 180,
       radius: 8
@@ -60,5 +67,39 @@ describe("ball possession", () => {
         TEST_PLAYER
       )
     ).toEqual(TEST_BALL);
+  });
+
+  it("releases possession after a kick", () => {
+    expect(releasePlayerPossession(createInitialPossessionState())).toEqual({
+      owner: null
+    });
+  });
+
+  it("allows the player to recover a nearby loose ball", () => {
+    expect(
+      canPlayerRecoverBall(TEST_PLAYER, {
+        ...TEST_BALL,
+        x: 210,
+        y: 170
+      })
+    ).toBe(true);
+  });
+
+  it("restores player possession when the loose ball is close enough", () => {
+    expect(
+      updatePlayerPossession(
+        {
+          owner: null
+        },
+        TEST_PLAYER,
+        {
+          ...TEST_BALL,
+          x: 202,
+          y: 176
+        }
+      )
+    ).toEqual({
+      owner: "player"
+    });
   });
 });

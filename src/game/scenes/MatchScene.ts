@@ -7,10 +7,21 @@ import type { PlayerState } from "../entities/player";
 import { createPlayerState } from "../entities/player";
 import type { PossessionState } from "../entities/possession";
 import { createInitialPossessionState } from "../entities/possession";
-import { syncBallWithPossession } from "../systems/ballPossession";
+import { createPassedBall, createShotBall, updateBallMotion } from "../systems/ballMotion";
+import {
+  hasPlayerPossession,
+  releasePlayerPossession,
+  syncBallWithPossession,
+  updatePlayerPossession
+} from "../systems/ballPossession";
 import { createBallSprite, syncBallSprite } from "../systems/ballRenderer";
 import { drawPitch } from "../systems/drawPitch";
-import { createPlayerControls, readPlayerMovementInput, type PlayerControls } from "../systems/playerControls";
+import {
+  createPlayerControls,
+  readPlayerActionInput,
+  readPlayerMovementInput,
+  type PlayerControls
+} from "../systems/playerControls";
 import { getNextPlayerState } from "../systems/playerMovement";
 import { createPlayerSprite, syncPlayerSprite } from "../systems/playerRenderer";
 
@@ -47,7 +58,7 @@ export class MatchScene extends Phaser.Scene {
       fontStyle: "bold"
     });
 
-    this.add.text(24, 46, "Move with Arrow Keys or WASD.", {
+    this.add.text(24, 46, "Move with Arrow Keys or WASD. Pass: Space. Shoot: Shift.", {
       color: "#d9e6c3",
       fontFamily: "Trebuchet MS",
       fontSize: "16px"
@@ -76,10 +87,38 @@ export class MatchScene extends Phaser.Scene {
       return;
     }
 
+    const actionInput = readPlayerActionInput(this.playerControls);
+
     this.playerState = getNextPlayerState(
       this.playerState,
       readPlayerMovementInput(this.playerControls),
       delta
+    );
+
+    if (hasPlayerPossession(this.possessionState)) {
+      const attachedBall = syncBallWithPossession(
+        this.ballState,
+        this.possessionState,
+        this.playerState
+      );
+
+      if (actionInput.shoot) {
+        this.possessionState = releasePlayerPossession(this.possessionState);
+        this.ballState = createShotBall(attachedBall, this.playerState.facing);
+      } else if (actionInput.pass) {
+        this.possessionState = releasePlayerPossession(this.possessionState);
+        this.ballState = createPassedBall(attachedBall, this.playerState.facing);
+      } else {
+        this.ballState = attachedBall;
+      }
+    } else {
+      this.ballState = updateBallMotion(this.ballState, delta);
+    }
+
+    this.possessionState = updatePlayerPossession(
+      this.possessionState,
+      this.playerState,
+      this.ballState
     );
     this.ballState = syncBallWithPossession(
       this.ballState,

@@ -1,4 +1,4 @@
-import { BALL_FOLLOW_DISTANCE } from "../config/ball";
+import { BALL_FOLLOW_DISTANCE, BALL_RECOVERY_DISTANCE } from "../config/ball";
 import type { BallState } from "../entities/ball";
 import type { PlayerState } from "../entities/player";
 import type { PossessionState } from "../entities/possession";
@@ -30,6 +30,39 @@ export const syncBallWithPossession = (
 
   return {
     ...ball,
-    ...getBallFollowPosition(player)
+    ...getBallFollowPosition(player),
+    velocityX: 0,
+    velocityY: 0
   };
+};
+
+export const releasePlayerPossession = (possession: PossessionState): PossessionState => ({
+  ...possession,
+  owner: null
+});
+
+export const canPlayerRecoverBall = (
+  player: PlayerState,
+  ball: BallState,
+  recoveryDistance: number = BALL_RECOVERY_DISTANCE
+): boolean => {
+  const distance = Math.hypot(player.x - ball.x, player.y - ball.y);
+
+  return distance <= recoveryDistance;
+};
+
+export const updatePlayerPossession = (
+  possession: PossessionState,
+  player: PlayerState,
+  ball: BallState
+): PossessionState => {
+  if (hasPlayerPossession(possession)) {
+    return possession;
+  }
+
+  return canPlayerRecoverBall(player, ball)
+    ? {
+      owner: "player"
+    }
+    : possession;
 };
