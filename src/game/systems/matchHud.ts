@@ -1,0 +1,89 @@
+import Phaser from "phaser";
+import { GAME_HEIGHT, GAME_WIDTH } from "../config/dimensions";
+import type { MatchState } from "../entities/match";
+import type { PossessionState } from "../entities/possession";
+import { formatMatchClock } from "./matchRules";
+
+export type MatchHud = {
+  scoreText: Phaser.GameObjects.Text;
+  statusText: Phaser.GameObjects.Text;
+  timerText: Phaser.GameObjects.Text;
+};
+
+export const createMatchHud = (scene: Phaser.Scene): MatchHud => {
+  const scoreText = scene.add.text(24, 18, "", {
+    color: "#f4f1de",
+    fontFamily: "Trebuchet MS",
+    fontSize: "28px",
+    fontStyle: "bold"
+  });
+
+  const timerText = scene.add.text(GAME_WIDTH / 2, 22, "", {
+    color: "#f4f1de",
+    fontFamily: "Trebuchet MS",
+    fontSize: "26px",
+    fontStyle: "bold"
+  }).setOrigin(0.5, 0);
+
+  const statusText = scene.add.text(24, 54, "", {
+    color: "#d9e6c3",
+    fontFamily: "Trebuchet MS",
+    fontSize: "18px"
+  });
+
+  scene.add.text(
+    GAME_WIDTH - 24,
+    18,
+    "Move: WASD / Arrows\nPass: Space\nShoot: Shift\nMenu: Esc",
+    {
+      align: "right",
+      color: "#d9e6c3",
+      fontFamily: "Trebuchet MS",
+      fontSize: "16px"
+    }
+  ).setOrigin(1, 0);
+
+  scene.add.text(
+    GAME_WIDTH / 2,
+    GAME_HEIGHT - 18,
+    "Score in the right goal. Press Esc for the menu.",
+    {
+      color: "#f4f1de",
+      fontFamily: "Trebuchet MS",
+      fontSize: "16px"
+    }
+  ).setOrigin(0.5, 1);
+
+  return {
+    scoreText,
+    statusText,
+    timerText
+  };
+};
+
+export const refreshMatchHud = (
+  hud: MatchHud,
+  match: MatchState,
+  possession: PossessionState | undefined
+): void => {
+  hud.scoreText.setText(`You ${match.playerScore} - ${match.opponentScore} Opponent`);
+  hud.timerText.setText(formatMatchClock(match.remainingMs));
+  hud.statusText.setText(getStatusText(match, possession));
+};
+
+const getStatusText = (
+  match: MatchState,
+  possession: PossessionState | undefined
+): string => {
+  if (match.phase === "finished") {
+    return "Status: Full time";
+  }
+
+  if (!possession || possession.owner === null) {
+    return "Status: Loose ball";
+  }
+
+  return possession.owner === "player"
+    ? "Status: You have possession"
+    : "Status: Opponent has possession";
+};

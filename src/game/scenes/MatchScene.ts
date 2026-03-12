@@ -1,5 +1,4 @@
 import Phaser from "phaser";
-import { GAME_HEIGHT, GAME_WIDTH } from "../config/dimensions";
 import { MATCH_DURATION_SECONDS } from "../config/match";
 import { OPPONENT_SPEED } from "../config/opponent";
 import { MAIN_MENU_SCENE_KEY, MATCH_SCENE_KEY } from "../config/sceneKeys";
@@ -23,13 +22,18 @@ import {
 import { createBallSprite, syncBallSprite } from "../systems/ballRenderer";
 import { drawPitch } from "../systems/drawPitch";
 import {
+  createFullTimeOverlay,
+  hideFullTimeOverlay,
+  showFullTimeOverlay,
+  type FullTimeOverlay
+} from "../systems/fullTimeOverlay";
+import {
   awardGoal,
-  formatMatchClock,
   getGoalScorer,
-  getMatchResultText,
   getPlayableDeltaMs,
   tickMatchClock
 } from "../systems/matchRules";
+import { createMatchHud, refreshMatchHud, type MatchHud } from "../systems/matchHud";
 import { getOpponentMovementInput } from "../systems/opponentAi";
 import { createOpponentSprite, syncOpponentSprite } from "../systems/opponentRenderer";
 import {
@@ -44,20 +48,15 @@ import { createPlayerSprite, syncPlayerSprite } from "../systems/playerRenderer"
 export class MatchScene extends Phaser.Scene {
   private ballSprite?: Phaser.GameObjects.Arc;
   private ballState?: BallState;
-  private endOverlay?: Phaser.GameObjects.Rectangle;
+  private fullTimeOverlay?: FullTimeOverlay;
+  private hud?: MatchHud;
   private matchState?: MatchState;
-  private menuButton?: Phaser.GameObjects.Container;
   private opponentSprite?: Phaser.GameObjects.Arc;
   private opponentState?: OpponentState;
   private playerControls: PlayerControls | null = null;
   private playerSprite?: Phaser.GameObjects.Arc;
   private playerState?: PlayerState;
   private possessionState?: PossessionState;
-  private restartButton?: Phaser.GameObjects.Container;
-  private restartPromptText?: Phaser.GameObjects.Text;
-  private scoreText?: Phaser.GameObjects.Text;
-  private statusText?: Phaser.GameObjects.Text;
-  private timerText?: Phaser.GameObjects.Text;
 
   constructor() {
     super(MATCH_SCENE_KEY);
@@ -70,7 +69,11 @@ export class MatchScene extends Phaser.Scene {
     this.setupKickoff();
     this.createSprites();
     this.playerControls = createPlayerControls(this);
-    this.createHud();
+    this.hud = createMatchHud(this);
+    this.fullTimeOverlay = createFullTimeOverlay(this, {
+      onMenu: () => this.returnToMenu(),
+      onRestart: () => this.restartMatch()
+    });
     this.refreshHud();
 
     this.input.keyboard?.on("keydown-ESC", this.returnToMenu, this);
@@ -181,81 +184,6 @@ export class MatchScene extends Phaser.Scene {
     syncBallSprite(this.ballSprite, this.ballState);
   }
 
-  private createHud(): void {
-    this.scoreText = this.add.text(24, 18, "", {
-      color: "#f4f1de",
-      fontFamily: "Trebuchet MS",
-      fontSize: "28px",
-      fontStyle: "bold"
-    });
-
-    this.timerText = this.add.text(GAME_WIDTH / 2, 22, "", {
-      color: "#f4f1de",
-      fontFamily: "Trebuchet MS",
-      fontSize: "26px",
-      fontStyle: "bold"
-    }).setOrigin(0.5, 0);
-
-    this.statusText = this.add.text(24, 54, "", {
-      color: "#d9e6c3",
-      fontFamily: "Trebuchet MS",
-      fontSize: "18px"
-    });
-
-    this.add.text(
-      GAME_WIDTH - 24,
-      18,
-      "Move: WASD / Arrows\nPass: Space\nShoot: Shift\nMenu: Esc",
-      {
-        align: "right",
-        color: "#d9e6c3",
-        fontFamily: "Trebuchet MS",
-        fontSize: "16px"
-      }
-    ).setOrigin(1, 0);
-
-    this.add.text(
-      GAME_WIDTH / 2,
-      GAME_HEIGHT - 18,
-      "Score in the right goal. Press Esc for the menu.",
-      {
-        color: "#f4f1de",
-        fontFamily: "Trebuchet MS",
-        fontSize: "16px"
-      }
-    ).setOrigin(0.5, 1);
-
-    this.endOverlay = this.add.rectangle(
-      GAME_WIDTH / 2,
-      GAME_HEIGHT / 2,
-      420,
-      220,
-      0x10281a,
-      0.94
-    ).setStrokeStyle(2, 0xf4f1de, 0.35).setDepth(10).setVisible(false);
-
-    this.restartPromptText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, "", {
-      align: "center",
-      color: "#f4f1de",
-      fontFamily: "Trebuchet MS",
-      fontSize: "28px",
-      fontStyle: "bold"
-    }).setDepth(11).setOrigin(0.5);
-
-    this.restartButton = this.createOverlayButton(
-      GAME_WIDTH / 2,
-      GAME_HEIGHT / 2 + 56,
-      "Restart Match",
-      this.restartMatch
-    );
-    this.menuButton = this.createOverlayButton(
-      GAME_WIDTH / 2,
-      GAME_HEIGHT / 2 + 122,
-      "Main Menu",
-      this.returnToMenu
-    );
-  }
-
   private createSprites(): void {
     if (!this.ballState || !this.opponentState || !this.playerState) {
       return;
@@ -267,25 +195,19 @@ export class MatchScene extends Phaser.Scene {
   }
 
   private refreshHud(): void {
-    if (!this.matchState) {
+    if (!this.fullTimeOverlay || !this.hud || !this.matchState) {
       return;
     }
 
-    this.scoreText?.setText(`You ${this.matchState.playerScore} - ${this.matchState.opponentScore} Opponent`);
-    this.timerText?.setText(formatMatchClock(this.matchState.remainingMs));
-    this.statusText?.setText(this.getStatusText());
+    refreshMatchHud(this.hud, this.matchState, this.possessionState);
 
     if (this.matchState.phase === "finished") {
-      this.restartPromptText?.setText(
-        `${getMatchResultText(this.matchState)}\nFinal Score ${this.matchState.playerScore} - ${this.matchState.opponentScore}\nPress Enter or R to restart`
-      );
-      this.setEndOverlayVisible(true);
+      showFullTimeOverlay(this.fullTimeOverlay, this.matchState);
 
       return;
     }
 
-    this.restartPromptText?.setText("");
-    this.setEndOverlayVisible(false);
+    hideFullTimeOverlay(this.fullTimeOverlay);
   }
 
   private restartMatch(): void {
@@ -318,62 +240,5 @@ export class MatchScene extends Phaser.Scene {
 
   private returnToMenu(): void {
     this.scene.start(MAIN_MENU_SCENE_KEY);
-  }
-
-  private createOverlayButton(
-    x: number,
-    y: number,
-    label: string,
-    onPress: () => void
-  ): Phaser.GameObjects.Container {
-    const background = this.add.rectangle(0, 0, 220, 48, 0xf4f1de);
-    const text = this.add.text(0, 0, label, {
-      color: "#123524",
-      fontFamily: "Trebuchet MS",
-      fontSize: "22px",
-      fontStyle: "bold"
-    }).setOrigin(0.5);
-
-    const button = this.add.container(x, y, [background, text])
-      .setDepth(11)
-      .setSize(220, 48)
-      .setVisible(false);
-
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerup", onPress, this);
-
-    return button;
-  }
-
-  private getStatusText(): string {
-    if (!this.matchState) {
-      return "";
-    }
-
-    if (this.matchState.phase === "finished") {
-      return "Status: Full time";
-    }
-
-    if (!this.possessionState || this.possessionState.owner === null) {
-      return "Status: Loose ball";
-    }
-
-    return this.possessionState.owner === "player"
-      ? "Status: You have possession"
-      : "Status: Opponent has possession";
-  }
-
-  private setEndOverlayVisible(visible: boolean): void {
-    this.endOverlay?.setVisible(visible);
-    this.restartButton?.setVisible(visible);
-    this.menuButton?.setVisible(visible);
-
-    if (this.restartButton?.input) {
-      this.restartButton.input.enabled = visible;
-    }
-
-    if (this.menuButton?.input) {
-      this.menuButton.input.enabled = visible;
-    }
   }
 }
