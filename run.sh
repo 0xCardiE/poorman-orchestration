@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TASKS_DIR="$ROOT_DIR/tasks"
 TODO_DIR="$TASKS_DIR/todo"
 DONE_DIR="$TASKS_DIR/done"
@@ -10,122 +10,118 @@ LOGS_DIR="$ROOT_DIR/logs"
 
 mkdir -p "$TODO_DIR" "$DONE_DIR" "$FAILED_DIR" "$LOGS_DIR"
 
-echo "Autonomous Codex runner starting..."
-
-# check codex
-if ! command -v codex >/dev/null 2>&1; then
-  echo "Codex CLI not installed."
+if ! command -v agent >/dev/null 2>&1; then
+  echo "Error: agent is not installed or not in PATH."
   exit 1
 fi
 
-# create AGENTS.md automatically if missing
 if [ ! -f "$ROOT_DIR/AGENTS.md" ]; then
-  echo "Creating default AGENTS.md"
-  cat <<EOF > AGENTS.md
-# Agent instructions
-
-You are working inside this repository.
-
-Rules:
-- Keep changes minimal and safe
-- Do not break existing functionality
-- Inspect the repository before changes
-- Prefer small modular code
-- Install dependencies if package.json exists
-- Run build/test/lint when available
-EOF
+  echo "Error: AGENTS.md not found in repo root."
+  exit 1
 fi
 
-# bootstrap dependencies
-if [ -f package.json ] && [ ! -d node_modules ]; then
-  echo "Installing dependencies..."
-  npm install
+echo "Starting Cursor Agent task runner..."
+echo "Repo: $ROOT_DIR"
+echo "Todo: $TODO_DIR"
+echo "Done: $DONE_DIR"
+echo "Failed: $FAILED_DIR"
+echo
+
+if [ -f "$ROOT_DIR/package.json" ]; then
+  echo "Detected package.json"
+  if [ ! -d "$ROOT_DIR/node_modules" ]; then
+    echo "node_modules missing, running npm install..."
+    (cd "$ROOT_DIR" && npm install)
+  else
+    echo "node_modules already present, skipping npm install"
+  fi
+  echo
 fi
 
-# if no tasks exist, ask Codex to generate them
-if [ -z "$(ls -A "$TODO_DIR")" ]; then
-  echo "Generating initial tasks with Codex..."
+shopt -s nullglob
+TASK_FILES=("$TODO_DIR"/*.md)
 
-  codex exec "
-Read AGENTS.md.
-
-Analyze the repository and create a series of development tasks.
-
-Create multiple markdown files in tasks/todo/ named like:
-
-01-task.md
-02-task.md
-03-task.md
-
-Each file must contain:
-- goal
-- acceptance criteria
-- constraints
-
-The tasks should progress logically and be small.
-"
+if [ ${#TASK_FILES[@]} -eq 0 ]; then
+  echo "No task files found in $TODO_DIR"
+  exit 0
 fi
 
 run_task() {
   local task_file="$1"
   local task_name
-  task_name="$(basename "$task_file")"
+  local log_file
+  local prompt
+  task_name="$(basename "$task_file" .md)"
   log_file="$LOGS_DIR/${task_name}.log"
 
-  echo "Running task $task_name"
+  echo "==================================================" | tee "$log_file"
+  echo "Running task: $task_name" | tee -a "$log_file"
+  echo "Task file: $task_file" | tee -a "$log_file"
+  echo "Log: $log_file" | tee -a "$log_file"
+  echo "==================================================" | tee -a "$log_file"
 
-  if ! {
-    echo "Read AGENTS.md first."
-    echo
-    echo "Execute task $task_name"
-    echo
-    cat "$task_file"
-  } | codex exec | tee "$log_file"; then
-    echo "Task failed"
+  prompt="$(
+    {
+      echo "Read AGENTS.md and README.md first."
+      echo
+      echo "Then execute the task described in $(basename "$task_file")."
+      echo
+      echo "Rules:"
+      echo "- Work only within this repository."
+      echo "- Preserve existing working functionality."
+      echo "- Keep changes minimal and practical."
+      echo "- Do not refactor unrelated code."
+      echo "- Inspect package.json if present."
+      echo "- If dependencies are missing, run npm install."
+      echo "- Run npm run build if available."
+      echo "- Run npm run test if available."
+      echo "- Run npm run lint if available."
+      echo "- Update README.md if setup, controls, or behavior changed."
+      echo "- When finished, print a short summary of what you changed."
+      echo
+      echo "Task file contents:"
+      cat "$task_file"
+    }
+  )"
+
+  if ! agent --print --trust "$prompt" | tee -a "$log_file"; then
+    echo "Task failed during Cursor Agent execution: $task_name" | tee -a "$log_file"
     mv "$task_file" "$FAILED_DIR/"
     return 1
   fi
 
-  # optional verification
-  if [ -f package.json ]; then
-    npm run build || true
-  fi
+  echo | tee -a "$log_file"
 
-  git add -A || true
-  git commit -m "codex completed $task_name" || true
-
-  mv "$task_file" "$DONE_DIR/"
-}
-
-while true; do
-
-  shopt -s nullglob
-  TASKS=("$TODO_DIR"/*.md)
-
-  if [ ${#TASKS[@]} -eq 0 ]; then
-    echo "No tasks left."
-
-    echo "Asking Codex if more tasks are needed..."
-
-    codex exec "
-Read AGENTS.md and the repository.
-
-If the project is unfinished, generate additional tasks in tasks/todo/.
-
-If the project is complete, say COMPLETE.
-"
-
-    sleep 1
-    TASKS=("$TODO_DIR"/*.md)
-
-    if [ ${#TASKS[@]} -eq 0 ]; then
-      echo "Project appears complete."
-      break
+  if [ -f "$ROOT_DIR/package.json" ]; then
+    echo "Checking build after task: $task_name" | tee -a "$log_file"
+    if (cd "$ROOT_DIR" && npm run build) | tee -a "$log_file"; then
+      echo "Build check passed for $task_name" | tee -a "$log_file"
+    else
+      echo "Build check failed for $task_name" | tee -a "$log_file"
+      mv "$task_file" "$FAILED_DIR/"
+      return 1
     fi
   fi
 
-  run_task "${TASKS[0]}"
+  if ! git -C "$ROOT_DIR" diff --quiet || ! git -C "$ROOT_DIR" diff --cached --quiet; then
+    git -C "$ROOT_DIR" add -A
+    git -C "$ROOT_DIR" commit -m "agent: complete $task_name" || true
+  else
+    echo "No file changes detected for $task_name" | tee -a "$log_file"
+  fi
 
+  mv "$task_file" "$DONE_DIR/"
+  echo "Finished task: $task_name" | tee -a "$log_file"
+  echo | tee -a "$log_file"
+}
+
+for task_file in "${TASK_FILES[@]}"; do
+  if ! run_task "$task_file"; then
+    echo
+    echo "Stopped after failure."
+    echo "Inspect $FAILED_DIR and $LOGS_DIR"
+    exit 1
+  fi
 done
 
-echo "Runner finished."
+echo "All todo tasks completed."
