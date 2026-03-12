@@ -1,0 +1,11 @@
+Implemented one explicit “reasonable default” in the gameplay logic: loose-ball pickup priority is now intentional instead of implicit. In [ballSystem.ts](/Users/marko/Documents/Experiments/browser-football-game/src/game/systems/ballSystem.ts#L28), I added `getLooseBallPickupOwner()` and routed free-ball possession through it, preserving the current MVP-friendly rule that the player wins exact distance ties. I also kept the existing stationary-kick fallback behavior explicit through tests.
+
+Added coverage in [ballSystem.test.ts](/Users/marko/Documents/Experiments/browser-football-game/tests/ballSystem.test.ts#L22) for two missing-detail decisions:
+- kicking with no input uses the owner’s default facing direction
+- equal-distance loose-ball ties go to the player
+
+`README.md` was not changed because setup, controls, and visible behavior did not materially change.
+
+Verification: `npm run test`, `npm run build`, and `npm run lint` could not run in this environment because local dev tools are not installed (`vitest`, `tsc`, and `eslint` were not found).
+
+Short summary: made loose-ball tie handling explicit, added tests for that rule and zero-direction kicks, and left the rest of the game unchanged.

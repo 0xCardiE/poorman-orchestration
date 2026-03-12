@@ -25,6 +25,31 @@ function getOwnerActor(state: MatchState): ActorState | null {
   return null;
 }
 
+function getLooseBallPickupOwner(state: MatchState): BallOwner {
+  const playerDistance = distance(state.player.position, state.ball.position);
+  const opponentDistance = distance(
+    state.opponent.position,
+    state.ball.position,
+  );
+  const controlDistance = state.ball.radius + POSSESSION_DISTANCE;
+  const playerCanCollect = playerDistance <= state.player.radius + controlDistance;
+  const opponentCanCollect = opponentDistance <= state.opponent.radius + controlDistance;
+
+  if (!playerCanCollect && !opponentCanCollect) {
+    return null;
+  }
+
+  if (playerCanCollect && (!opponentCanCollect || playerDistance <= opponentDistance)) {
+    return 'player';
+  }
+
+  if (opponentCanCollect) {
+    return 'opponent';
+  }
+
+  return null;
+}
+
 export function setBallOwner(state: MatchState, owner: BallOwner): void {
   state.ball.owner = owner;
   state.player.hasBall = owner === 'player';
@@ -116,22 +141,14 @@ export function updatePossession(state: MatchState): void {
   }
 
   if (state.ball.owner === null) {
-    const playerDistance = distance(state.player.position, state.ball.position);
-    const opponentDistance = distance(
-      state.opponent.position,
-      state.ball.position,
-    );
-    const controlDistance = state.ball.radius + POSSESSION_DISTANCE;
+    const pickupOwner = getLooseBallPickupOwner(state);
 
-    if (
-      playerDistance <= state.player.radius + controlDistance &&
-      playerDistance <= opponentDistance
-    ) {
+    if (pickupOwner === 'player') {
       setBallOwner(state, 'player');
       return;
     }
 
-    if (opponentDistance <= state.opponent.radius + controlDistance) {
+    if (pickupOwner === 'opponent') {
       setBallOwner(state, 'opponent');
     }
 

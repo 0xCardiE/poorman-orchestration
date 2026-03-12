@@ -19,6 +19,15 @@ describe('ballSystem', () => {
     expect(state.ball.velocity.y).toBe(0);
   });
 
+  it('uses the owner default facing direction when a kick has no input direction', () => {
+    const state = createInitialMatchState();
+
+    kickBall(state, { x: 0, y: 0 }, BALL_PASS_SPEED);
+
+    expect(state.ball.velocity.x).toBe(BALL_PASS_SPEED);
+    expect(state.ball.velocity.y).toBe(0);
+  });
+
   it('grants possession to the nearest actor when the ball is free', () => {
     const state = createInitialMatchState({ kickoffOwner: 'opponent' });
 
@@ -32,5 +41,23 @@ describe('ballSystem', () => {
 
     expect(state.ball.owner).toBe('player');
     expect(state.player.hasBall).toBe(true);
+  });
+
+  it('breaks loose-ball distance ties in the player favor', () => {
+    const state = createInitialMatchState({ kickoffOwner: 'opponent' });
+
+    state.possessionCooldown = 0;
+    state.ball.owner = null;
+    state.player.hasBall = false;
+    state.opponent.hasBall = false;
+    state.player.position = { x: 300, y: 240 };
+    state.opponent.position = { x: 420, y: 240 };
+    state.ball.position = { x: 360, y: 240 };
+
+    updatePossession(state);
+
+    expect(state.ball.owner).toBe('player');
+    expect(state.player.hasBall).toBe(true);
+    expect(state.opponent.hasBall).toBe(false);
   });
 });
