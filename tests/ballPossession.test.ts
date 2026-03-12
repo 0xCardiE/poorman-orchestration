@@ -1,14 +1,18 @@
 import { describe, expect, it } from "vitest";
 import type { BallState } from "../src/game/entities/ball";
+import type { OpponentState } from "../src/game/entities/opponent";
 import type { PlayerState } from "../src/game/entities/player";
 import { createInitialPossessionState } from "../src/game/entities/possession";
 import {
+  canOpponentRecoverBall,
   canPlayerRecoverBall,
   getBallFollowPosition,
+  getLooseBallRecoveryOwner,
+  hasOpponentPossession,
   hasPlayerPossession,
   releasePlayerPossession,
   syncBallWithPossession,
-  updatePlayerPossession
+  updatePossession
 } from "../src/game/systems/ballPossession";
 
 const TEST_PLAYER: PlayerState = {
@@ -29,9 +33,20 @@ const TEST_BALL: BallState = {
   radius: 8
 };
 
+const TEST_OPPONENT: OpponentState = {
+  facing: {
+    x: -1,
+    y: 0
+  },
+  x: 260,
+  y: 160,
+  radius: 18
+};
+
 describe("ball possession", () => {
   it("starts with player possession", () => {
     expect(hasPlayerPossession(createInitialPossessionState())).toBe(true);
+    expect(hasOpponentPossession(createInitialPossessionState())).toBe(false);
   });
 
   it("places the ball in front of the player's facing direction", () => {
@@ -45,7 +60,8 @@ describe("ball possession", () => {
     const ballState = syncBallWithPossession(
       TEST_BALL,
       createInitialPossessionState(),
-      TEST_PLAYER
+      TEST_PLAYER,
+      TEST_OPPONENT
     );
 
     expect(ballState).toEqual({
@@ -64,7 +80,8 @@ describe("ball possession", () => {
         {
           owner: null
         },
-        TEST_PLAYER
+        TEST_PLAYER,
+        TEST_OPPONENT
       )
     ).toEqual(TEST_BALL);
   });
@@ -85,13 +102,24 @@ describe("ball possession", () => {
     ).toBe(true);
   });
 
+  it("allows the opponent to recover a nearby loose ball", () => {
+    expect(
+      canOpponentRecoverBall(TEST_OPPONENT, {
+        ...TEST_BALL,
+        x: 250,
+        y: 166
+      })
+    ).toBe(true);
+  });
+
   it("restores player possession when the loose ball is close enough", () => {
     expect(
-      updatePlayerPossession(
+      updatePossession(
         {
           owner: null
         },
         TEST_PLAYER,
+        TEST_OPPONENT,
         {
           ...TEST_BALL,
           x: 202,
@@ -100,6 +128,45 @@ describe("ball possession", () => {
       )
     ).toEqual({
       owner: "player"
+    });
+  });
+
+  it("awards a loose ball to the nearest recoverer", () => {
+    expect(
+      getLooseBallRecoveryOwner(
+        TEST_PLAYER,
+        {
+          ...TEST_OPPONENT,
+          x: 206,
+          y: 180
+        },
+        {
+          ...TEST_BALL,
+          x: 205,
+          y: 178
+        }
+      )
+    ).toBe("opponent");
+  });
+
+  it("lets the opponent steal possession when it gets close to the carried ball", () => {
+    expect(
+      updatePossession(
+        createInitialPossessionState(),
+        TEST_PLAYER,
+        {
+          ...TEST_OPPONENT,
+          x: 198,
+          y: 176
+        },
+        {
+          ...TEST_BALL,
+          x: 200,
+          y: 180
+        }
+      )
+    ).toEqual({
+      owner: "opponent"
     });
   });
 });

@@ -16,7 +16,7 @@ Start the local dev server:
 npm run dev
 ```
 
-Start a match from the main menu with the on-screen button or by pressing `Enter` / `Space`. In the match scene, move the player with `WASD` or the arrow keys, press `Space` to pass, `Shift` to shoot, and `Esc` to return to the menu. The player begins each match in possession, with the ball following their movement until a pass or shot sends it loose.
+Start a match from the main menu with the on-screen button or by pressing `Enter` / `Space`. In the match scene, move the player with `WASD` or the arrow keys, press `Space` to pass, `Shift` to shoot, and `Esc` to return to the menu. The player begins each match in possession, with the ball following their movement until a pass or shot sends it loose. A red opponent applies simple pressure by chasing the ball carrier, contesting loose balls, and carrying the ball back toward its home side when it wins possession.
 
 ## Available Commands
 
@@ -37,4 +37,4 @@ Start a match from the main menu with the on-screen button or by pressing `Enter
 
 ## Current Status
 
-The project now boots into a main menu and transitions into a dedicated match scene that renders a simple football pitch with touchlines, a halfway line, penalty areas, goal areas, and goals. One controllable player can move around the pitch and is clamped to the field bounds. The match starts with the player in possession, and the ball follows the player's facing direction until the player passes or shoots. Passes and shots use simple arcade-style ball travel with drag, and possession returns when the player reaches the loose ball. AI, score, and timer logic have not been implemented yet.
+The project now boots into a main menu and transitions into a dedicated match scene that renders a simple football pitch with touchlines, a halfway line, penalty areas, goal areas, and goals. One controllable player can move around the pitch and is clamped to the field bounds. The match starts with the player in possession, and the ball follows the carrier's facing direction until a pass, shot, or simple tackle sends it elsewhere. Passes and shots use simple arcade-style ball travel with drag, and a basic opponent AI chases the ball carrier or loose ball to create pressure. Score and timer logic have not been implemented yet.

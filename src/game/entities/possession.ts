@@ -1,4 +1,4 @@
-export type PossessionOwner = "player" | null;
+export type PossessionOwner = "opponent" | "player" | null;
 
 export type PossessionState = {
   owner: PossessionOwner;

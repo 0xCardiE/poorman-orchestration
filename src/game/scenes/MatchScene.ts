@@ -1,8 +1,11 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config/dimensions";
+import { OPPONENT_SPEED } from "../config/opponent";
 import { MAIN_MENU_SCENE_KEY, MATCH_SCENE_KEY } from "../config/sceneKeys";
 import type { BallState } from "../entities/ball";
 import { createBallState } from "../entities/ball";
+import type { OpponentState } from "../entities/opponent";
+import { createOpponentState } from "../entities/opponent";
 import type { PlayerState } from "../entities/player";
 import { createPlayerState } from "../entities/player";
 import type { PossessionState } from "../entities/possession";
@@ -12,10 +15,12 @@ import {
   hasPlayerPossession,
   releasePlayerPossession,
   syncBallWithPossession,
-  updatePlayerPossession
+  updatePossession
 } from "../systems/ballPossession";
 import { createBallSprite, syncBallSprite } from "../systems/ballRenderer";
 import { drawPitch } from "../systems/drawPitch";
+import { getOpponentMovementInput } from "../systems/opponentAi";
+import { createOpponentSprite, syncOpponentSprite } from "../systems/opponentRenderer";
 import {
   createPlayerControls,
   readPlayerActionInput,
@@ -28,6 +33,8 @@ import { createPlayerSprite, syncPlayerSprite } from "../systems/playerRenderer"
 export class MatchScene extends Phaser.Scene {
   private ballSprite?: Phaser.GameObjects.Arc;
   private ballState?: BallState;
+  private opponentSprite?: Phaser.GameObjects.Arc;
+  private opponentState?: OpponentState;
   private playerControls: PlayerControls | null = null;
   private playerSprite?: Phaser.GameObjects.Arc;
   private playerState?: PlayerState;
@@ -41,14 +48,17 @@ export class MatchScene extends Phaser.Scene {
     drawPitch(this);
 
     this.playerState = createPlayerState();
+    this.opponentState = createOpponentState();
     this.possessionState = createInitialPossessionState();
     this.ballState = syncBallWithPossession(
       createBallState(this.playerState),
       this.possessionState,
-      this.playerState
+      this.playerState,
+      this.opponentState
     );
     this.ballSprite = createBallSprite(this, this.ballState);
     this.playerSprite = createPlayerSprite(this, this.playerState);
+    this.opponentSprite = createOpponentSprite(this, this.opponentState);
     this.playerControls = createPlayerControls(this);
 
     this.add.text(24, 14, "Match Scene", {
@@ -80,6 +90,8 @@ export class MatchScene extends Phaser.Scene {
     if (
       !this.ballSprite ||
       !this.ballState ||
+      !this.opponentSprite ||
+      !this.opponentState ||
       !this.playerState ||
       !this.playerSprite ||
       !this.possessionState
@@ -95,11 +107,25 @@ export class MatchScene extends Phaser.Scene {
       delta
     );
 
+    this.opponentState = getNextPlayerState(
+      this.opponentState,
+      getOpponentMovementInput(
+        this.opponentState,
+        this.possessionState,
+        this.playerState,
+        this.ballState
+      ),
+      delta,
+      undefined,
+      OPPONENT_SPEED
+    );
+
     if (hasPlayerPossession(this.possessionState)) {
       const attachedBall = syncBallWithPossession(
         this.ballState,
         this.possessionState,
-        this.playerState
+        this.playerState,
+        this.opponentState
       );
 
       if (actionInput.shoot) {
@@ -111,22 +137,32 @@ export class MatchScene extends Phaser.Scene {
       } else {
         this.ballState = attachedBall;
       }
+    } else if (this.possessionState.owner === "opponent") {
+      this.ballState = syncBallWithPossession(
+        this.ballState,
+        this.possessionState,
+        this.playerState,
+        this.opponentState
+      );
     } else {
       this.ballState = updateBallMotion(this.ballState, delta);
     }
 
-    this.possessionState = updatePlayerPossession(
+    this.possessionState = updatePossession(
       this.possessionState,
       this.playerState,
+      this.opponentState,
       this.ballState
     );
     this.ballState = syncBallWithPossession(
       this.ballState,
       this.possessionState,
-      this.playerState
+      this.playerState,
+      this.opponentState
     );
 
     syncPlayerSprite(this.playerSprite, this.playerState);
+    syncOpponentSprite(this.opponentSprite, this.opponentState);
     syncBallSprite(this.ballSprite, this.ballState);
   }
 
