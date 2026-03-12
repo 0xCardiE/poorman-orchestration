@@ -1,55 +1,55 @@
-# Browser Football Game - Agent Instructions
+# Niche Research Digest - Agent Instructions
 
 ## Goal
-Build a lightweight 2D browser football game that runs in the browser and is fun to play in short sessions.
+Build a browser-based research workspace that helps a user collect sources, capture key claims, compare perspectives, and produce concise topic digests.
 
 ## Product scope for v1
 Implement:
-- main menu
-- match scene
-- one controllable player
-- one ball
-- movement
-- passing
-- shooting
-- simple opponent AI
-- score
-- timer
-- restart match flow
-- desktop keyboard controls
-- basic mobile controls only if easy after desktop works
+- app scaffold
+- dashboard with clear navigation
+- source library with title, URL, type, publisher, date, topic, tags, and notes
+- source detail view with manual summary and key takeaways
+- claim capture with support, contradict, or neutral relationships
+- topic pages that group related sources and claims
+- digest view that highlights recent additions and unresolved questions
+- search and filters across sources, topics, and claims
+- local persistence
+- basic import/export if it is easy after core flows work
 
 Do not implement in v1:
-- online multiplayer
-- accounts
+- user accounts
 - backend server
-- cosmetics store
-- complex physics simulation
-- commentary
-- tournaments
+- real-time collaboration
+- browser extension capture flow
+- full web scraping pipeline
+- vector database or embeddings infrastructure
+- paid plans or billing
 
 ## Tech stack
 - TypeScript
 - Vite
-- Phaser 3
+- React
+- localStorage or IndexedDB for persistence
 - Vitest
 - ESLint
 
 ## Architecture rules
-- Keep rendering and gameplay logic separate
-- Keep constants in a dedicated config module
-- Use small modules
-- Prefer simple clear code over abstractions
-- Avoid adding dependencies unless necessary
-- Keep core game logic framework-light where possible
+- Keep domain logic separate from UI components
+- Keep source, topic, claim, and digest models in dedicated modules
+- Prefer pure functions for digest and relationship logic
+- Use small components and small feature modules
+- Avoid unnecessary dependencies
+- Prefer local-first design and simple data flows
 
 ## Folder structure target
-- src/game/scenes
-- src/game/entities
-- src/game/systems
-- src/game/config
-- src/ui
-- src/utils
+- src/app
+- src/components
+- src/features/sources
+- src/features/topics
+- src/features/claims
+- src/features/digests
+- src/lib
+- src/types
 - tests
 
 ## Quality bar
@@ -57,14 +57,14 @@ Before finishing a task:
 - run build
 - run tests if relevant
 - avoid unrelated changes
-- keep README updated when setup or controls change
+- keep README updated when setup or behavior changes
 
 ## Coding rules
 - Use descriptive names
 - Avoid giant files
 - Add comments only where needed
 - Do not leave dead code unless clearly marked as temporary
-- Prefer incremental changes that keep the game playable
+- Prefer incremental changes that keep the app usable
 
 ## Task behavior
 When asked to implement something:
@@ -76,17 +76,17 @@ When asked to implement something:
 
 ## Definition of done for features
 A feature is done when:
-- it works in local gameplay
-- it does not break existing flow
+- it works in the browser
+- it does not break existing flows
 - build passes
-- controls and behavior are documented if user-visible
+- important user behavior is documented if visible
 
 ## Current priority order
 1. project scaffold
-2. playable pitch and player movement
-3. ball and possession
-4. pass
-5. shoot
-6. opponent behavior
-7. score and timer
+2. source capture and storage
+3. topic and tag organization
+4. claim capture and linking
+5. digest generation
+6. search and filters
+7. import/export
 8. polish

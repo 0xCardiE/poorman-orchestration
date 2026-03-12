@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TASKS_DIR="$ROOT_DIR/tasks"
 TODO_DIR="$TASKS_DIR/todo"
 DONE_DIR="$TASKS_DIR/done"
@@ -9,6 +9,7 @@ FAILED_DIR="$TASKS_DIR/failed"
 LOGS_DIR="$ROOT_DIR/logs"
 
 mkdir -p "$TODO_DIR" "$DONE_DIR" "$FAILED_DIR" "$LOGS_DIR"
+cd "$ROOT_DIR"
 
 echo "Autonomous Codex runner starting..."
 
@@ -37,9 +38,9 @@ EOF
 fi
 
 # bootstrap dependencies
-if [ -f package.json ] && [ ! -d node_modules ]; then
+if [ -f "$ROOT_DIR/package.json" ] && [ ! -d "$ROOT_DIR/node_modules" ]; then
   echo "Installing dependencies..."
-  npm install
+  (cd "$ROOT_DIR" && npm install)
 fi
 
 # if no tasks exist, ask Codex to generate them
@@ -47,7 +48,7 @@ if [ -z "$(ls -A "$TODO_DIR")" ]; then
   echo "Generating initial tasks with Codex..."
 
   codex exec "
-Read AGENTS.md.
+Read AGENTS.md and PLANS.md.
 
 Analyze the repository and create a series of development tasks.
 
@@ -75,7 +76,7 @@ run_task() {
   echo "Running task $task_name"
 
   if ! {
-    echo "Read AGENTS.md first."
+    echo "Read AGENTS.md and PLANS.md first."
     echo
     echo "Execute task $task_name"
     echo
@@ -87,12 +88,12 @@ run_task() {
   fi
 
   # optional verification
-  if [ -f package.json ]; then
-    npm run build || true
+  if [ -f "$ROOT_DIR/package.json" ]; then
+    (cd "$ROOT_DIR" && npm run build) || true
   fi
 
-  git add -A || true
-  git commit -m "codex completed $task_name" || true
+  git -C "$ROOT_DIR" add -A || true
+  git -C "$ROOT_DIR" commit -m "codex completed $task_name" || true
 
   mv "$task_file" "$DONE_DIR/"
 }
@@ -108,7 +109,7 @@ while true; do
     echo "Asking Codex if more tasks are needed..."
 
     codex exec "
-Read AGENTS.md and the repository.
+Read AGENTS.md, PLANS.md, and the repository.
 
 If the project is unfinished, generate additional tasks in tasks/todo/.
 
