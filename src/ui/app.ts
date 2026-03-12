@@ -9,7 +9,7 @@ export function createAppShell(): string {
     <main class="app-shell">
       <header class="app-header">
         <h1>Browser Football Game</h1>
-        <p>Arcade football for short desktop sessions.</p>
+        <p>Arcade football for short browser sessions.</p>
       </header>
       <section id="game-root" class="game-root" aria-label="Game canvas"></section>
     </main>

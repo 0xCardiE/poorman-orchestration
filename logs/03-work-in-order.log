@@ -1,0 +1,10 @@
+Implemented the next remaining scoped item: basic mobile touch controls, with minimal scene-level changes and no gameplay refactor.
+
+- Added a touch joystick plus `PASS` / `SHOOT` buttons to the match scene, and made the match loop work even when keyboard keys are unavailable on touch-only devices in [src/game/scenes/MatchScene.ts](/Users/marko/Documents/Experiments/browser-football-game/src/game/scenes/MatchScene.ts#L51).
+- Added touch-aware menu copy so mobile players see the correct controls before starting in [src/game/scenes/MenuScene.ts](/Users/marko/Documents/Experiments/browser-football-game/src/game/scenes/MenuScene.ts#L20).
+- Updated the app subtitle to stop describing the game as desktop-only in [src/ui/app.ts](/Users/marko/Documents/Experiments/browser-football-game/src/ui/app.ts#L8).
+- Updated the README controls and status to document the new mobile behavior in [README.md](/Users/marko/Documents/Experiments/browser-football-game/README.md#L21).
+
+Verification could not be completed here because the repo has no `node_modules`, so `npm run build`, `npm run test`, and `npm run lint` all failed with missing local binaries (`tsc`, `vitest`, `eslint`).
+
+Short summary: added basic mobile controls, updated menu/UI copy, and documented the new touch behavior. Remaining non-MVP work is still polish/advanced features outside the current minimal scope.

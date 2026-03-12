@@ -26,6 +26,7 @@ npm run lint
 - `R`: restart the current match
 - `Esc`: return to the main menu
 - `Enter` or `Space`: start from the menu, restart after full time
+- Touch devices: use the bottom-left touch pad to move, tap `PASS` or `SHOOT`, and tap the full-time banner to restart
 
 ## Current status
 
@@ -36,9 +37,9 @@ Implemented in the current MVP:
 - ball possession, pass, and shoot
 - one simple opponent
 - score, timer, and restart flow
+- basic mobile touch controls
 
 Not implemented:
 
-- mobile controls
 - advanced physics
 - multiplayer or backend features

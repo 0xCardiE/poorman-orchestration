@@ -11,12 +11,16 @@ export class MenuScene extends Phaser.Scene {
     space: Phaser.Input.Keyboard.Key;
   };
 
+  private isTouchEnabled = false;
+
   constructor() {
     super(SCENE_KEYS.menu);
   }
 
   create(): void {
     const centerX = GAME_SIZE.width / 2;
+    const maxTouchPoints = typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints;
+    this.isTouchEnabled = this.sys.game.device.input.touch || maxTouchPoints > 0;
 
     this.cameras.main.setBackgroundColor(GAME_COLORS.background);
 
@@ -34,7 +38,11 @@ export class MenuScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5);
 
-    this.add.text(centerX, 280, 'Move: WASD / Arrows\nPass: J\nShoot: K\nRestart: R', {
+    const controlText = this.isTouchEnabled
+      ? 'Move: touch pad\nPass: PASS button\nShoot: SHOOT button\nRestart: tap full-time banner'
+      : 'Move: WASD / Arrows\nPass: J\nShoot: K\nRestart: R';
+
+    this.add.text(centerX, 280, controlText, {
       color: '#f4f2d0',
       fontFamily: 'Courier New',
       fontSize: '26px',
@@ -42,7 +50,11 @@ export class MenuScene extends Phaser.Scene {
       lineSpacing: 10,
     }).setOrigin(0.5);
 
-    this.add.text(centerX, 430, 'Press Enter, Space, or click to start', {
+    const startPrompt = this.isTouchEnabled
+      ? 'Press Enter, Space, click, or tap to start'
+      : 'Press Enter, Space, or click to start';
+
+    this.add.text(centerX, 430, startPrompt, {
       color: '#ffce52',
       fontFamily: 'Trebuchet MS',
       fontSize: '24px',

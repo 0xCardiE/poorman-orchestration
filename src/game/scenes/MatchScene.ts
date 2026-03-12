@@ -48,6 +48,26 @@ interface MatchKeys {
   space: Phaser.Input.Keyboard.Key;
 }
 
+interface TouchControls {
+  enabled: boolean;
+  movePointerId: number | null;
+  moveInput: Vector2;
+  passQueued: boolean;
+  shootQueued: boolean;
+  moveBase?: Phaser.GameObjects.Arc;
+  moveStick?: Phaser.GameObjects.Arc;
+  passButton?: Phaser.GameObjects.Container;
+  shootButton?: Phaser.GameObjects.Container;
+}
+
+const TOUCH_MOVE_CENTER = {
+  x: 122,
+  y: GAME_SIZE.height - 104,
+};
+
+const TOUCH_MOVE_RADIUS = 56;
+const TOUCH_MOVE_MAX_DISTANCE = 44;
+
 export class MatchScene extends Phaser.Scene {
   private state: MatchState = createInitialMatchState();
 
@@ -67,35 +87,49 @@ export class MatchScene extends Phaser.Scene {
 
   private endText?: Phaser.GameObjects.Text;
 
+  private controlsHintText?: Phaser.GameObjects.Text;
+
+  private touchControls: TouchControls = {
+    enabled: false,
+    movePointerId: null,
+    moveInput: { x: 0, y: 0 },
+    passQueued: false,
+    shootQueued: false,
+  };
+
   constructor() {
     super(SCENE_KEYS.match);
   }
 
   create(): void {
     this.state = createInitialMatchState();
+    this.touchControls = {
+      enabled: this.isTouchEnabled(),
+      movePointerId: null,
+      moveInput: { x: 0, y: 0 },
+      passQueued: false,
+      shootQueued: false,
+    };
     this.drawPitch();
     this.createActors();
     this.createHud();
     this.createControls();
+    this.createTouchControls();
     attachBallToOwner(this.state);
     this.syncView();
   }
 
   update(_time: number, delta: number): void {
-    if (!this.keys) {
-      return;
-    }
-
-    if (Phaser.Input.Keyboard.JustDown(this.keys.menu)) {
+    if (this.isJustDown(this.keys?.menu)) {
       this.scene.start(SCENE_KEYS.menu);
       return;
     }
 
     if (
-      Phaser.Input.Keyboard.JustDown(this.keys.restart) ||
+      this.isJustDown(this.keys?.restart) ||
       (this.state.status === 'finished' && (
-        Phaser.Input.Keyboard.JustDown(this.keys.enter) ||
-        Phaser.Input.Keyboard.JustDown(this.keys.space)
+        this.isJustDown(this.keys?.enter) ||
+        this.isJustDown(this.keys?.space)
       ))
     ) {
       this.scene.restart();
@@ -112,13 +146,22 @@ export class MatchScene extends Phaser.Scene {
 
     moveActor(this.state.player, playerInput, deltaSeconds, PITCH_BOUNDS);
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.pass)) {
+    if (
+      this.isJustDown(this.keys?.pass)
+      || this.touchControls.passQueued
+    ) {
       kickBall(this.state, this.getActionDirection(playerInput), BALL_PASS_SPEED);
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.shoot)) {
+    if (
+      this.isJustDown(this.keys?.shoot)
+      || this.touchControls.shootQueued
+    ) {
       kickBall(this.state, this.getActionDirection(playerInput), BALL_SHOT_SPEED);
     }
+
+    this.touchControls.passQueued = false;
+    this.touchControls.shootQueued = false;
 
     const opponentInput = getOpponentInput(this.state);
     moveActor(this.state.opponent, opponentInput, deltaSeconds, PITCH_BOUNDS);
@@ -231,7 +274,7 @@ export class MatchScene extends Phaser.Scene {
       align: 'center',
     }).setOrigin(0.5, 0);
 
-    this.add.text(GAME_SIZE.width / 2, GAME_SIZE.height - 26, 'WASD/Arrows move  |  J pass  |  K shoot  |  R restart  |  Esc menu', {
+    this.controlsHintText = this.add.text(GAME_SIZE.width / 2, GAME_SIZE.height - 26, '', {
       color: '#dce7bd',
       fontFamily: 'Trebuchet MS',
       fontSize: '18px',
@@ -249,6 +292,13 @@ export class MatchScene extends Phaser.Scene {
         y: 14,
       },
     }).setOrigin(0.5).setVisible(false);
+
+    this.endText.setInteractive({ useHandCursor: true });
+    this.endText.on('pointerdown', () => {
+      if (this.state.status === 'finished') {
+        this.scene.restart();
+      }
+    });
   }
 
   private createControls(): void {
@@ -270,17 +320,72 @@ export class MatchScene extends Phaser.Scene {
     }) as MatchKeys;
   }
 
-  private getPlayerInput(): Vector2 {
-    if (!this.keys) {
-      return { x: 0, y: 0 };
+  private createTouchControls(): void {
+    if (!this.touchControls.enabled) {
+      this.controlsHintText?.setText('WASD/Arrows move  |  J pass  |  K shoot  |  R restart  |  Esc menu');
+      return;
     }
 
-    const x = Number(this.keys.right.isDown || this.keys.d.isDown)
-      - Number(this.keys.left.isDown || this.keys.a.isDown);
-    const y = Number(this.keys.down.isDown || this.keys.s.isDown)
-      - Number(this.keys.up.isDown || this.keys.w.isDown);
+    this.input.addPointer(2);
 
-    return { x, y };
+    this.controlsHintText?.setText('Touch pad moves  |  Tap PASS or SHOOT  |  Tap full-time banner to restart');
+    this.controlsHintText?.setFontSize('16px');
+
+    const moveBase = this.add.circle(
+      TOUCH_MOVE_CENTER.x,
+      TOUCH_MOVE_CENTER.y,
+      TOUCH_MOVE_RADIUS,
+      GAME_COLORS.shadow,
+      0.28,
+    ).setStrokeStyle(2, GAME_COLORS.hud, 0.45);
+
+    const moveStick = this.add.circle(
+      TOUCH_MOVE_CENTER.x,
+      TOUCH_MOVE_CENTER.y,
+      24,
+      GAME_COLORS.hud,
+      0.65,
+    ).setStrokeStyle(2, GAME_COLORS.line, 0.6);
+
+    const passButton = this.createTouchButton(
+      GAME_SIZE.width - 170,
+      GAME_SIZE.height - 124,
+      'PASS',
+    );
+    const shootButton = this.createTouchButton(
+      GAME_SIZE.width - 92,
+      GAME_SIZE.height - 72,
+      'SHOOT',
+    );
+
+    passButton.on('pointerdown', () => {
+      this.touchControls.passQueued = true;
+    });
+    shootButton.on('pointerdown', () => {
+      this.touchControls.shootQueued = true;
+    });
+
+    this.touchControls.moveBase = moveBase;
+    this.touchControls.moveStick = moveStick;
+    this.touchControls.passButton = passButton;
+    this.touchControls.shootButton = shootButton;
+
+    this.input.on('pointerdown', this.handleTouchPointerDown, this);
+    this.input.on('pointermove', this.handleTouchPointerMove, this);
+    this.input.on('pointerup', this.handleTouchPointerUp, this);
+    this.input.on('pointerupoutside', this.handleTouchPointerUp, this);
+  }
+
+  private getPlayerInput(): Vector2 {
+    const keyboardX = Number(this.keys?.right.isDown || this.keys?.d.isDown)
+      - Number(this.keys?.left.isDown || this.keys?.a.isDown);
+    const keyboardY = Number(this.keys?.down.isDown || this.keys?.s.isDown)
+      - Number(this.keys?.up.isDown || this.keys?.w.isDown);
+
+    return {
+      x: Phaser.Math.Clamp(keyboardX + this.touchControls.moveInput.x, -1, 1),
+      y: Phaser.Math.Clamp(keyboardY + this.touchControls.moveInput.y, -1, 1),
+    };
   }
 
   private getActionDirection(input: Vector2): Vector2 {
@@ -318,11 +423,93 @@ export class MatchScene extends Phaser.Scene {
     );
 
     if (this.state.status === 'finished') {
-      this.endText?.setText(`${getResultLabel(this.state)}\nPress Space or R to restart`);
+      const restartHint = this.touchControls.enabled
+        ? 'Tap to restart'
+        : 'Press Space or R to restart';
+      this.endText?.setText(`${getResultLabel(this.state)}\n${restartHint}`);
       this.endText?.setVisible(true);
       return;
     }
 
     this.endText?.setVisible(false);
+  }
+
+  private createTouchButton(
+    x: number,
+    y: number,
+    label: string,
+  ): Phaser.GameObjects.Container {
+    const background = this.add.circle(0, 0, 36, GAME_COLORS.shadow, 0.36)
+      .setStrokeStyle(2, GAME_COLORS.accent, 0.65);
+    const text = this.add.text(0, 0, label, {
+      color: '#f5f0ce',
+      fontFamily: 'Trebuchet MS',
+      fontSize: '16px',
+      fontStyle: 'bold',
+    }).setOrigin(0.5);
+
+    return this.add.container(x, y, [background, text])
+      .setSize(72, 72)
+      .setInteractive(
+        new Phaser.Geom.Circle(36, 36, 36),
+        Phaser.Geom.Circle.Contains,
+      );
+  }
+
+  private handleTouchPointerDown(pointer: Phaser.Input.Pointer): void {
+    if (!this.touchControls.enabled || this.touchControls.movePointerId !== null) {
+      return;
+    }
+
+    if (pointer.x > GAME_SIZE.width / 2 || pointer.y < GAME_SIZE.height - 180) {
+      return;
+    }
+
+    this.touchControls.movePointerId = pointer.id;
+    this.updateTouchMoveInput(pointer);
+  }
+
+  private handleTouchPointerMove(pointer: Phaser.Input.Pointer): void {
+    if (!this.touchControls.enabled || pointer.id !== this.touchControls.movePointerId) {
+      return;
+    }
+
+    this.updateTouchMoveInput(pointer);
+  }
+
+  private handleTouchPointerUp(pointer: Phaser.Input.Pointer): void {
+    if (!this.touchControls.enabled || pointer.id !== this.touchControls.movePointerId) {
+      return;
+    }
+
+    this.touchControls.movePointerId = null;
+    this.touchControls.moveInput = { x: 0, y: 0 };
+    this.touchControls.moveStick?.setPosition(TOUCH_MOVE_CENTER.x, TOUCH_MOVE_CENTER.y);
+  }
+
+  private updateTouchMoveInput(pointer: Phaser.Input.Pointer): void {
+    const dx = pointer.x - TOUCH_MOVE_CENTER.x;
+    const dy = pointer.y - TOUCH_MOVE_CENTER.y;
+    const distance = Math.min(Math.hypot(dx, dy), TOUCH_MOVE_MAX_DISTANCE);
+    const angle = Math.atan2(dy, dx);
+    const normalizedDistance = distance / TOUCH_MOVE_MAX_DISTANCE;
+
+    this.touchControls.moveInput = {
+      x: Math.cos(angle) * normalizedDistance,
+      y: Math.sin(angle) * normalizedDistance,
+    };
+    this.touchControls.moveStick?.setPosition(
+      TOUCH_MOVE_CENTER.x + (Math.cos(angle) * distance),
+      TOUCH_MOVE_CENTER.y + (Math.sin(angle) * distance),
+    );
+  }
+
+  private isTouchEnabled(): boolean {
+    const maxTouchPoints = typeof navigator === 'undefined' ? 0 : navigator.maxTouchPoints;
+    return this.sys.game.device.input.touch || maxTouchPoints > 0;
+  }
+
+  private isJustDown(key?: Phaser.Input.Keyboard.Key): boolean {
+    return key ? Phaser.Input.Keyboard.JustDown(key) : false;
   }
 }
