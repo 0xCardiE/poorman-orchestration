@@ -2,6 +2,10 @@
 
 A lightweight 2D browser football game built with Phaser 3. Play quick 90-second matches against a simple AI opponent.
 
+## Prerequisites
+
+- Node.js 18+
+
 ## Setup
 
 ```bash
@@ -50,6 +54,7 @@ npm run lint
 - Walk into the ball to pick it up
 - Pass sends the ball in your facing direction
 - Shoot kicks the ball harder toward the goal
+- Walk into the opponent while they have the ball to tackle and win it back
 - Score by getting the ball into the opponent's goal (right side)
 - After a goal, play pauses briefly and kickoff goes to the team that conceded
 - Match lasts 90 seconds (timer turns red in the last 10 seconds)
@@ -90,18 +95,24 @@ tests/
 
 ## Status
 
+v0.4 - Stability fixes:
+- Fixed ball snapping to player position after goal kickoff delay
+- Possession ring and direction arrow now visible during kickoff pause
+- Fixed pointer accumulation on repeated scene restarts (mobile)
+- Removed dead code (unused velocity field, ineffective damping)
+
 v0.3 - Gameplay polish:
 - Post-goal kickoff delay with possession given to conceding team
 - Timer warning (turns red in last 10 seconds)
 - Responsive scaling (FIT mode) for different screen sizes
 
-v0.2 - Polished release:
+v0.2 - Core gameplay:
 - Main menu with start button
 - Playable pitch with center line, circle, and penalty areas
 - Player movement (WASD / arrows)
 - Ball with possession pickup and wall bounce physics
 - Pass (Space) and shoot (Shift)
-- Simple opponent AI (chases ball, shoots at goal)
+- Simple opponent AI (chases ball, shoots at goal, loses ball on tackle)
 - Score display and 90-second timer
 - Match end screen with restart flow
 - Yellow possession ring around ball holder
