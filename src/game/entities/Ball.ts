@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BALL, PITCH } from '../config/constants';
+import { BALL, PITCH, GOAL } from '../config/constants';
 
 export class Ball {
   sprite: Phaser.Physics.Arcade.Sprite;
@@ -68,9 +68,26 @@ export class Ball {
     const minY = PITCH.y + r;
     const maxY = PITCH.y + PITCH.height - r;
 
-    if (this.sprite.x < minX) this.sprite.x = minX;
-    if (this.sprite.x > maxX) this.sprite.x = maxX;
-    if (this.sprite.y < minY) this.sprite.y = minY;
-    if (this.sprite.y > maxY) this.sprite.y = maxY;
+    const goalTop = PITCH.y + PITCH.height / 2 - GOAL.height / 2;
+    const goalBottom = PITCH.y + PITCH.height / 2 + GOAL.height / 2;
+    const inGoalRange = this.sprite.y >= goalTop && this.sprite.y <= goalBottom;
+
+    const body = this.sprite.body!;
+
+    if (this.sprite.y < minY) {
+      this.sprite.y = minY;
+      if (body.velocity.y < 0) body.velocity.y *= -0.7;
+    } else if (this.sprite.y > maxY) {
+      this.sprite.y = maxY;
+      if (body.velocity.y > 0) body.velocity.y *= -0.7;
+    }
+
+    if (this.sprite.x < minX) {
+      this.sprite.x = minX;
+      if (!inGoalRange && body.velocity.x < 0) body.velocity.x *= -0.7;
+    } else if (this.sprite.x > maxX) {
+      this.sprite.x = maxX;
+      if (!inGoalRange && body.velocity.x > 0) body.velocity.x *= -0.7;
+    }
   }
 }

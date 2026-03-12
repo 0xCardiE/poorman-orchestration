@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, PITCH, GOAL, PLAYER, BALL } from '../config/constants';
+import { GAME_WIDTH, GAME_HEIGHT, PITCH, GOAL, PLAYER, BALL, OPPONENT } from '../config/constants';
 import { Player } from '../entities/Player';
 import { Ball } from '../entities/Ball';
 import { Opponent } from '../entities/Opponent';
@@ -23,6 +23,8 @@ export class MatchScene extends Phaser.Scene {
 
   private scoreText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
+  private overlayGraphics!: Phaser.GameObjects.Graphics;
+  private touchMovePointer: Phaser.Input.Pointer | null = null;
 
   constructor() {
     super({ key: 'MatchScene' });
@@ -31,6 +33,7 @@ export class MatchScene extends Phaser.Scene {
   create(): void {
     this.playerHasBall = false;
     this.matchEnded = false;
+    this.touchMovePointer = null;
     this.scoreManager = new ScoreManager();
     this.matchTimer = new MatchTimer();
 
@@ -48,6 +51,9 @@ export class MatchScene extends Phaser.Scene {
     this.createHUD();
 
     this.matchTimer.start();
+
+    this.overlayGraphics = this.add.graphics().setDepth(2);
+    this.setupMobileControls();
   }
 
   update(_time: number, delta: number): void {
@@ -64,7 +70,12 @@ export class MatchScene extends Phaser.Scene {
     this.matchTimer.update(deltaSec);
     this.timerText.setText(this.matchTimer.formatTime());
 
-    this.player.update(this.cursors, this.wasd);
+    if (this.touchMovePointer?.isDown) {
+      this.handleMobileMovement();
+    } else {
+      this.touchMovePointer = null;
+      this.player.update(this.cursors, this.wasd);
+    }
 
     this.handlePlayerPossession();
     this.handlePassAndShoot();
@@ -86,6 +97,7 @@ export class MatchScene extends Phaser.Scene {
 
     this.ball.update();
     this.checkGoals();
+    this.drawOverlays();
 
     this.clampToPitch(this.player.sprite, PLAYER.radius);
     this.clampToPitch(this.opponent.sprite, PLAYER.radius);
@@ -149,6 +161,7 @@ export class MatchScene extends Phaser.Scene {
 
   private onGoal(): void {
     this.scoreText.setText(this.scoreManager.toString());
+    this.showGoalFlash();
     this.resetPositions();
   }
 
@@ -238,6 +251,15 @@ export class MatchScene extends Phaser.Scene {
     g.moveTo(cx, PITCH.y);
     g.lineTo(cx, PITCH.y + PITCH.height);
     g.strokePath();
+
+    const penWidth = 80;
+    const penHeight = 180;
+    const penTop = cy - penHeight / 2;
+    g.strokeRect(PITCH.x, penTop, penWidth, penHeight);
+    g.strokeRect(PITCH.x + PITCH.width - penWidth, penTop, penWidth, penHeight);
+
+    g.fillCircle(PITCH.x + 65, cy, 3);
+    g.fillCircle(PITCH.x + PITCH.width - 65, cy, 3);
   }
 
   private drawGoals(): void {
@@ -282,6 +304,130 @@ export class MatchScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setDepth(5);
+  }
+
+  private drawOverlays(): void {
+    this.overlayGraphics.clear();
+
+    if (this.playerHasBall) {
+      this.overlayGraphics.lineStyle(2, 0xffff00, 0.8);
+      this.overlayGraphics.strokeCircle(this.player.sprite.x, this.player.sprite.y, PLAYER.radius + 4);
+    } else if (this.opponent.hasBall) {
+      this.overlayGraphics.lineStyle(2, 0xffff00, 0.8);
+      this.overlayGraphics.strokeCircle(this.opponent.sprite.x, this.opponent.sprite.y, OPPONENT.radius + 4);
+    }
+
+    const fx = this.player.facing.x;
+    const fy = this.player.facing.y;
+    const px = this.player.sprite.x;
+    const py = this.player.sprite.y;
+    const tipDist = PLAYER.radius + 8;
+    const tipX = px + fx * tipDist;
+    const tipY = py + fy * tipDist;
+    const perpX = -fy;
+    const perpY = fx;
+    const baseSize = 4;
+
+    this.overlayGraphics.fillStyle(0xffff00, 0.9);
+    this.overlayGraphics.fillTriangle(
+      tipX, tipY,
+      tipX - fx * 6 + perpX * baseSize, tipY - fy * 6 + perpY * baseSize,
+      tipX - fx * 6 - perpX * baseSize, tipY - fy * 6 - perpY * baseSize,
+    );
+  }
+
+  private showGoalFlash(): void {
+    const goalText = this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'GOAL!', {
+        fontSize: '48px',
+        color: '#ffff00',
+        fontStyle: 'bold',
+      })
+      .setOrigin(0.5)
+      .setDepth(15);
+
+    this.tweens.add({
+      targets: goalText,
+      alpha: 0,
+      y: GAME_HEIGHT / 2 - 40,
+      duration: 1200,
+      ease: 'Power2',
+      onComplete: () => goalText.destroy(),
+    });
+  }
+
+  private setupMobileControls(): void {
+    if (!this.sys.game.device.input.touch) return;
+
+    this.input.addPointer(1);
+
+    const passBtn = this.add
+      .text(GAME_WIDTH - 70, GAME_HEIGHT - 75, 'PASS', {
+        fontSize: '16px',
+        color: '#ffffff',
+        backgroundColor: '#2980b9',
+        padding: { x: 12, y: 8 },
+      })
+      .setOrigin(0.5)
+      .setInteractive()
+      .setDepth(20)
+      .setAlpha(0.7);
+
+    passBtn.on('pointerdown', () => {
+      if (this.playerHasBall && !this.matchEnded) {
+        this.ball.kick(this.player.facing.x, this.player.facing.y, BALL.passSpeed);
+        this.playerHasBall = false;
+      }
+    });
+
+    const shootBtn = this.add
+      .text(GAME_WIDTH - 70, GAME_HEIGHT - 30, 'SHOOT', {
+        fontSize: '16px',
+        color: '#ffffff',
+        backgroundColor: '#c0392b',
+        padding: { x: 10, y: 8 },
+      })
+      .setOrigin(0.5)
+      .setInteractive()
+      .setDepth(20)
+      .setAlpha(0.7);
+
+    shootBtn.on('pointerdown', () => {
+      if (this.playerHasBall && !this.matchEnded) {
+        this.ball.kick(this.player.facing.x, this.player.facing.y, BALL.shootSpeed);
+        this.playerHasBall = false;
+      }
+    });
+
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      if (pointer.x < GAME_WIDTH - 120) {
+        this.touchMovePointer = pointer;
+      }
+    });
+
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      if (this.touchMovePointer === pointer) {
+        this.touchMovePointer = null;
+        this.player.sprite.setVelocity(0, 0);
+      }
+    });
+  }
+
+  private handleMobileMovement(): void {
+    if (!this.touchMovePointer) return;
+
+    const dx = this.touchMovePointer.x - this.player.sprite.x;
+    const dy = this.touchMovePointer.y - this.player.sprite.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist > 10) {
+      const nx = dx / dist;
+      const ny = dy / dist;
+      this.player.sprite.setVelocity(nx * PLAYER.speed, ny * PLAYER.speed);
+      this.player.facing.set(nx, ny);
+    } else {
+      this.player.sprite.setVelocity(0, 0);
+    }
   }
 
   private clampToPitch(sprite: Phaser.Physics.Arcade.Sprite, radius: number): void {

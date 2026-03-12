@@ -27,11 +27,21 @@ npm run lint
 
 ## Controls
 
+### Desktop
+
 | Action | Keys |
 |--------|------|
 | Move | WASD or Arrow keys |
 | Pass | Space |
 | Shoot | Shift |
+
+### Mobile / Touch
+
+| Action | Control |
+|--------|---------|
+| Move | Touch left side of screen |
+| Pass | PASS button (bottom-right) |
+| Shoot | SHOOT button (bottom-right) |
 
 ## Gameplay
 
@@ -78,12 +88,16 @@ tests/
 
 ## Status
 
-v0.1 - All core features implemented:
+v0.2 - Polished release:
 - Main menu with start button
-- Playable pitch with center line and circle
+- Playable pitch with center line, circle, and penalty areas
 - Player movement (WASD / arrows)
-- Ball with possession pickup
+- Ball with possession pickup and wall bounce physics
 - Pass (Space) and shoot (Shift)
 - Simple opponent AI (chases ball, shoots at goal)
 - Score display and 90-second timer
 - Match end screen with restart flow
+- Yellow possession ring around ball holder
+- Player direction indicator (arrow showing facing)
+- "GOAL!" flash animation on scoring
+- Basic mobile touch controls (touch-to-move + on-screen buttons)
