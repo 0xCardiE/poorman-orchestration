@@ -1,7 +1,11 @@
+import { KICKOFF_DURATION_MS } from "../src/game/config/match";
 import { describe, expect, it } from "vitest";
 import { createMatchState } from "../src/game/entities/match";
 import {
+  advanceMatchState,
   awardGoal,
+  beginKickoff,
+  formatKickoffCountdown,
   formatMatchClock,
   getGoalScorer,
   getPlayableDeltaMs,
@@ -52,10 +56,55 @@ describe("match rules", () => {
     });
   });
 
+  it("starts new matches in kickoff state", () => {
+    expect(createMatchState()).toMatchObject({
+      kickoffRemainingMs: KICKOFF_DURATION_MS,
+      phase: "kickoff"
+    });
+  });
+
+  it("keeps play disabled while kickoff time remains", () => {
+    const result = advanceMatchState(createMatchState(), 500);
+
+    expect(result.playableDeltaMs).toBe(0);
+    expect(result.match).toMatchObject({
+      kickoffRemainingMs: 1000,
+      phase: "kickoff"
+    });
+    expect(getPlayableDeltaMs(result.match, 16)).toBe(0);
+  });
+
+  it("returns leftover frame time once kickoff finishes", () => {
+    const result = advanceMatchState(createMatchState(), 1750);
+
+    expect(result.playableDeltaMs).toBe(250);
+    expect(result.match).toMatchObject({
+      kickoffRemainingMs: 0,
+      phase: "playing"
+    });
+  });
+
+  it("can re-enter kickoff after a goal reset", () => {
+    const restartedMatch = beginKickoff({
+      ...createMatchState(),
+      kickoffRemainingMs: 0,
+      phase: "playing",
+      playerScore: 2
+    });
+
+    expect(restartedMatch).toMatchObject({
+      kickoffRemainingMs: KICKOFF_DURATION_MS,
+      phase: "kickoff",
+      playerScore: 2
+    });
+  });
+
   it("counts the clock down and finishes the match at zero", () => {
     const finishedMatch = tickMatchClock(
       {
         ...createMatchState(),
+        kickoffRemainingMs: 0,
+        phase: "playing",
         remainingMs: 400
       },
       500
@@ -70,6 +119,8 @@ describe("match rules", () => {
       getPlayableDeltaMs(
         {
           ...createMatchState(),
+          kickoffRemainingMs: 0,
+          phase: "playing",
           remainingMs: 120
         },
         250
@@ -81,5 +132,10 @@ describe("match rules", () => {
     expect(formatMatchClock(60_000)).toBe("1:00");
     expect(formatMatchClock(59_001)).toBe("1:00");
     expect(formatMatchClock(12_000)).toBe("0:12");
+  });
+
+  it("formats kickoff countdown text for the HUD", () => {
+    expect(formatKickoffCountdown(1500)).toBe("Kickoff in 2");
+    expect(formatKickoffCountdown(1000)).toBe("Kickoff in 1");
   });
 });

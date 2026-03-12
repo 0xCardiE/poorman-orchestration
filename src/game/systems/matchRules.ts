@@ -1,3 +1,4 @@
+import { KICKOFF_DURATION_MS } from "../config/match";
 import { GOAL, PITCH_BOUNDS } from "../config/pitch";
 import type { BallState } from "../entities/ball";
 import type { MatchState, ScoringSide } from "../entities/match";
@@ -55,8 +56,65 @@ export const awardGoal = (match: MatchState, side: ScoringSide): MatchState =>
       opponentScore: match.opponentScore + 1
     };
 
-export const getPlayableDeltaMs = (match: MatchState, deltaMs: number): number => {
+export const beginKickoff = (
+  match: MatchState,
+  kickoffDurationMs: number = KICKOFF_DURATION_MS
+): MatchState => ({
+  ...match,
+  kickoffRemainingMs: kickoffDurationMs,
+  phase: "kickoff"
+});
+
+export type MatchAdvanceResult = {
+  match: MatchState;
+  playableDeltaMs: number;
+};
+
+export const advanceMatchState = (
+  match: MatchState,
+  deltaMs: number
+): MatchAdvanceResult => {
   if (match.phase === "finished") {
+    return {
+      match,
+      playableDeltaMs: 0
+    };
+  }
+
+  if (match.phase === "playing") {
+    return {
+      match,
+      playableDeltaMs: Math.min(deltaMs, match.remainingMs)
+    };
+  }
+
+  const kickoffDeltaMs = Math.min(deltaMs, match.kickoffRemainingMs);
+  const kickoffRemainingMs = match.kickoffRemainingMs - kickoffDeltaMs;
+
+  if (kickoffRemainingMs > 0) {
+    return {
+      match: {
+        ...match,
+        kickoffRemainingMs
+      },
+      playableDeltaMs: 0
+    };
+  }
+
+  const playingMatch: MatchState = {
+    ...match,
+    kickoffRemainingMs: 0,
+    phase: "playing"
+  };
+
+  return {
+    match: playingMatch,
+    playableDeltaMs: Math.min(deltaMs - kickoffDeltaMs, playingMatch.remainingMs)
+  };
+};
+
+export const getPlayableDeltaMs = (match: MatchState, deltaMs: number): number => {
+  if (match.phase !== "playing") {
     return 0;
   }
 
@@ -64,7 +122,7 @@ export const getPlayableDeltaMs = (match: MatchState, deltaMs: number): number =
 };
 
 export const tickMatchClock = (match: MatchState, deltaMs: number): MatchState => {
-  if (match.phase === "finished") {
+  if (match.phase !== "playing") {
     return match;
   }
 
@@ -76,6 +134,9 @@ export const tickMatchClock = (match: MatchState, deltaMs: number): MatchState =
     remainingMs
   };
 };
+
+export const formatKickoffCountdown = (remainingMs: number): string =>
+  `Kickoff in ${Math.max(1, Math.ceil(remainingMs / 1000))}`;
 
 export const formatMatchClock = (remainingMs: number): string => {
   const totalSeconds = Math.ceil(remainingMs / 1000);

@@ -2,9 +2,10 @@ import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config/dimensions";
 import type { MatchState } from "../entities/match";
 import type { PossessionState } from "../entities/possession";
-import { formatMatchClock } from "./matchRules";
+import { formatKickoffCountdown, formatMatchClock } from "./matchRules";
 
 export type MatchHud = {
+  kickoffText: Phaser.GameObjects.Text;
   scoreText: Phaser.GameObjects.Text;
   statusText: Phaser.GameObjects.Text;
   timerText: Phaser.GameObjects.Text;
@@ -31,6 +32,13 @@ export const createMatchHud = (scene: Phaser.Scene): MatchHud => {
     fontSize: "18px"
   });
 
+  const kickoffText = scene.add.text(GAME_WIDTH / 2, 78, "", {
+    color: "#f4f1de",
+    fontFamily: "Trebuchet MS",
+    fontSize: "34px",
+    fontStyle: "bold"
+  }).setOrigin(0.5, 0).setVisible(false);
+
   scene.add.text(
     GAME_WIDTH - 24,
     18,
@@ -55,6 +63,7 @@ export const createMatchHud = (scene: Phaser.Scene): MatchHud => {
   ).setOrigin(0.5, 1);
 
   return {
+    kickoffText,
     scoreText,
     statusText,
     timerText
@@ -69,6 +78,8 @@ export const refreshMatchHud = (
   hud.scoreText.setText(`You ${match.playerScore} - ${match.opponentScore} Opponent`);
   hud.timerText.setText(formatMatchClock(match.remainingMs));
   hud.statusText.setText(getStatusText(match, possession));
+  hud.kickoffText.setVisible(match.phase === "kickoff");
+  hud.kickoffText.setText(match.phase === "kickoff" ? formatKickoffCountdown(match.kickoffRemainingMs) : "");
 };
 
 const getStatusText = (
@@ -77,6 +88,10 @@ const getStatusText = (
 ): string => {
   if (match.phase === "finished") {
     return "Status: Full time";
+  }
+
+  if (match.phase === "kickoff") {
+    return `Status: ${formatKickoffCountdown(match.kickoffRemainingMs)}`;
   }
 
   if (!possession || possession.owner === null) {

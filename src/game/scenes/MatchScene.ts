@@ -28,9 +28,10 @@ import {
   type FullTimeOverlay
 } from "../systems/fullTimeOverlay";
 import {
+  advanceMatchState,
+  beginKickoff,
   awardGoal,
   getGoalScorer,
-  getPlayableDeltaMs,
   tickMatchClock
 } from "../systems/matchRules";
 import { createMatchHud, refreshMatchHud, type MatchHud } from "../systems/matchHud";
@@ -100,9 +101,12 @@ export class MatchScene extends Phaser.Scene {
       return;
     }
 
-    const playableDelta = getPlayableDeltaMs(this.matchState, delta);
+    const matchAdvance = advanceMatchState(this.matchState, delta);
+    this.matchState = matchAdvance.match;
+    const playableDelta = matchAdvance.playableDeltaMs;
 
     if (playableDelta === 0) {
+      readPlayerActionInput(this.playerControls);
       this.refreshHud();
       return;
     }
@@ -159,8 +163,17 @@ export class MatchScene extends Phaser.Scene {
     }
 
     if (scoringSide) {
-      this.matchState = awardGoal(this.matchState, scoringSide);
-      this.setupKickoff();
+      const scoredMatch = tickMatchClock(
+        awardGoal(this.matchState, scoringSide),
+        playableDelta
+      );
+
+      if (scoredMatch.phase === "finished") {
+        this.matchState = scoredMatch;
+      } else {
+        this.matchState = beginKickoff(scoredMatch);
+        this.setupKickoff();
+      }
     } else {
       this.possessionState = updatePossession(
         this.possessionState,
@@ -174,9 +187,9 @@ export class MatchScene extends Phaser.Scene {
         this.playerState,
         this.opponentState
       );
-    }
 
-    this.matchState = tickMatchClock(this.matchState, playableDelta);
+      this.matchState = tickMatchClock(this.matchState, playableDelta);
+    }
     this.refreshHud();
 
     syncPlayerSprite(this.playerSprite, this.playerState);

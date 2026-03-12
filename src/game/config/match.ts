@@ -1,1 +1,2 @@
 export const MATCH_DURATION_SECONDS = 60;
+export const KICKOFF_DURATION_MS = 1500;

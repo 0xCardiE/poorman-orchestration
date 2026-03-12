@@ -1,15 +1,13 @@
 ## Goal
-Reconstruct the missing project scaffold for a Vite + TypeScript + Phaser 3 game so the repository has a real source tree instead of only instructions, installed dependencies, and build output.
+Extract the match HUD and full-time overlay out of `MatchScene` into small dedicated modules so gameplay orchestration and UI rendering are more clearly separated.
 
 ## Acceptance Criteria
-- A `package.json` exists with scripts for `dev`, `build`, `test`, and `lint`.
-- The repo contains the initial folder structure from `AGENTS.md`, including `src/game/scenes`, `src/game/entities`, `src/game/systems`, `src/game/config`, `src/ui`, `src/utils`, and `tests`.
-- Vite, TypeScript, Phaser 3, Vitest, and ESLint are configured with minimal working defaults.
-- A minimal app entry point exists and the project builds successfully.
-- `README.md` documents setup and available commands.
+- `MatchScene` no longer contains the full HUD and overlay construction inline.
+- HUD creation and HUD refresh logic live in small reusable modules under `src/game/systems` or `src/ui`.
+- The full-time overlay still shows the result, restart action, and menu action with the current behavior unchanged.
+- The game still builds and the existing automated tests still pass.
 
 ## Constraints
-- Keep the scaffold minimal; do not add extra libraries unless required.
-- Prefer small modules and keep gameplay logic framework-light.
-- Avoid unrelated cleanup of generated files or user changes.
-- Verify the build before closing the task.
+- Do not change core gameplay rules in this task.
+- Keep the UI visuals functionally the same unless a small cleanup is required by the extraction.
+- Prefer simple data flow over introducing a large UI abstraction layer.

@@ -31,11 +31,13 @@ npm run dev
 - `Esc` returns to the main menu.
 - `Enter` or `R` restarts after full time.
 - Mouse or touch can also use the on-screen restart and menu buttons shown at full time.
+- Movement, passing, and shooting stay locked during the brief kickoff countdown at match start and after goals.
 
 ## Gameplay
 
 - Each match lasts 60 seconds.
 - You start each kickoff in possession.
+- A brief kickoff countdown resets both players and the ball to their starting spots before play resumes.
 - Score by sending a loose ball into the right goal.
 - The opponent chases the ball carrier, contests loose balls, and retreats with possession.
 - After a goal, play resets from midfield.
