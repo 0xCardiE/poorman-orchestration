@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT, PITCH, GOAL, PLAYER, BALL, OPPONENT } from '../config/constants';
+import { GAME_WIDTH, GAME_HEIGHT, PITCH, GOAL, PLAYER, BALL, OPPONENT, MATCH } from '../config/constants';
 import { Player } from '../entities/Player';
 import { Ball } from '../entities/Ball';
 import { Opponent } from '../entities/Opponent';
@@ -20,6 +20,7 @@ export class MatchScene extends Phaser.Scene {
 
   private playerHasBall = false;
   private matchEnded = false;
+  private kickoffTimer = 0;
 
   private scoreText!: Phaser.GameObjects.Text;
   private timerText!: Phaser.GameObjects.Text;
@@ -33,6 +34,7 @@ export class MatchScene extends Phaser.Scene {
   create(): void {
     this.playerHasBall = false;
     this.matchEnded = false;
+    this.kickoffTimer = 0;
     this.touchMovePointer = null;
     this.scoreManager = new ScoreManager();
     this.matchTimer = new MatchTimer();
@@ -69,6 +71,14 @@ export class MatchScene extends Phaser.Scene {
 
     this.matchTimer.update(deltaSec);
     this.timerText.setText(this.matchTimer.formatTime());
+    this.timerText.setColor(
+      this.matchTimer.remaining <= MATCH.timerWarnSec ? '#ff4444' : '#aaaaaa',
+    );
+
+    if (this.kickoffTimer > 0) {
+      this.kickoffTimer -= deltaSec;
+      return;
+    }
 
     if (this.touchMovePointer?.isDown) {
       this.handleMobileMovement();
@@ -152,27 +162,37 @@ export class MatchScene extends Phaser.Scene {
 
     if (bx <= PITCH.x + BALL.radius && by >= goalTop && by <= goalBottom) {
       this.scoreManager.opponentGoal();
-      this.onGoal();
+      this.onGoal('player');
     } else if (bx >= PITCH.x + PITCH.width - BALL.radius && by >= goalTop && by <= goalBottom) {
       this.scoreManager.playerGoal();
-      this.onGoal();
+      this.onGoal('opponent');
     }
   }
 
-  private onGoal(): void {
+  private onGoal(concededBy: 'player' | 'opponent'): void {
     this.scoreText.setText(this.scoreManager.toString());
     this.showGoalFlash();
-    this.resetPositions();
+    this.resetPositions(concededBy);
+    this.kickoffTimer = MATCH.kickoffDelaySec;
   }
 
-  private resetPositions(): void {
+  private resetPositions(kickoffTo: 'player' | 'opponent'): void {
     const cx = PITCH.x + PITCH.width / 2;
     const cy = PITCH.y + PITCH.height / 2;
     this.player.sprite.setPosition(cx - 100, cy);
     this.player.sprite.setVelocity(0, 0);
     this.ball.resetToCenter();
     this.opponent.resetToHome();
-    this.playerHasBall = false;
+    this.opponent.hasBall = false;
+
+    if (kickoffTo === 'player') {
+      this.playerHasBall = true;
+      this.ball.isFree = false;
+    } else {
+      this.playerHasBall = false;
+      this.opponent.hasBall = true;
+      this.ball.isFree = false;
+    }
   }
 
   private showMatchEnd(): void {

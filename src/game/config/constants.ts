@@ -43,4 +43,6 @@ export const BALL = {
 
 export const MATCH = {
   durationSeconds: 90,
+  kickoffDelaySec: 1.5,
+  timerWarnSec: 10,
 };

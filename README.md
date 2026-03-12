@@ -51,8 +51,10 @@ npm run lint
 - Pass sends the ball in your facing direction
 - Shoot kicks the ball harder toward the goal
 - Score by getting the ball into the opponent's goal (right side)
-- Match lasts 90 seconds
+- After a goal, play pauses briefly and kickoff goes to the team that conceded
+- Match lasts 90 seconds (timer turns red in the last 10 seconds)
 - After full time you can restart or return to the main menu
+- Game scales to fit the browser window
 
 ## Tech Stack
 
@@ -87,6 +89,11 @@ tests/
 ```
 
 ## Status
+
+v0.3 - Gameplay polish:
+- Post-goal kickoff delay with possession given to conceding team
+- Timer warning (turns red in last 10 seconds)
+- Responsive scaling (FIT mode) for different screen sizes
 
 v0.2 - Polished release:
 - Main menu with start button
