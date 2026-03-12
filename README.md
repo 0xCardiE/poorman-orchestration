@@ -16,6 +16,8 @@ Start the local dev server:
 npm run dev
 ```
 
+Production builds lazy-load the Phaser runtime into a separate chunk. The page now renders a lightweight loading card before the game boots into the Phaser main menu.
+
 ## Controls
 
 ### Main Menu

@@ -1,15 +1,14 @@
 ## Goal
-Introduce the ball and a simple possession model for the controllable player.
+Add minimal mobile touch controls for movement, pass, and shoot without destabilizing desktop keyboard play.
 
 ## Acceptance Criteria
-- A visible ball exists in the match scene.
-- The match starts with a clear possession state.
-- While the player has possession, the ball follows the player in a consistent way.
-- Possession logic is separated from rendering enough to support future passing and shooting.
-- Any framework-light possession or follow behavior that can be tested has coverage.
+- A touch-friendly movement control and separate pass/shoot actions are available during the match.
+- Desktop keyboard controls continue to work unchanged.
+- Touch controls are shown only when appropriate for touch play, or otherwise fail gracefully on desktop.
+- Restart and menu flow remain usable on mobile.
+- README documents the supported mobile controls and any intentional limitations.
 
 ## Constraints
-- Keep the implementation intentionally simple; no advanced physics simulation.
-- Do not implement pass or shot actions in this task.
-- Reuse shared config/constants instead of hardcoding distances and speeds.
-- Preserve existing menu and movement flow.
+- Keep the implementation lightweight and readable.
+- Avoid adding dependencies or building a complex virtual gamepad system.
+- If a control tradeoff is necessary, preserve desktop behavior first.
