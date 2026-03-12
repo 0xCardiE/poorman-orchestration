@@ -1,0 +1,5 @@
+Updated [run.sh](/Users/marko/Documents/Experiments/browser-football-game/run.sh) so the task runner now performs `npm run build` after each completed task, appends that output to the task log, and stops immediately if the build fails. That is the smallest durable way to enforce “check whether the build passes after each milestone” in this repo’s existing workflow.
+
+Verification: `bash -n run.sh` passes. `npm run build` and `npm run test` do not currently pass in this checkout because `node_modules` is missing, so local binaries like `tsc` and `vitest` are not installed (`sh: tsc: command not found`, `sh: vitest: command not found`). `README.md` was not changed because gameplay/setup/controls did not change.
+
+Short summary: added an automatic post-task build check to the runner; current local build is still blocked by missing dependencies.

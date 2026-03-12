@@ -71,6 +71,16 @@ EOF
     exit 1
   fi
 
+  echo | tee -a "$log_file"
+  echo "Checking build after task: $task_name" | tee -a "$log_file"
+  if (cd "$ROOT_DIR" && npm run build) | tee -a "$log_file"; then
+    echo "Build check passed for $task_name" | tee -a "$log_file"
+  else
+    echo "Build check failed for $task_name" | tee -a "$log_file"
+    echo "See log: $log_file"
+    exit 1
+  fi
+
   if ! git diff --quiet || ! git diff --cached --quiet; then
     git add -A
     git commit -m "codex: complete $task_name" || true
