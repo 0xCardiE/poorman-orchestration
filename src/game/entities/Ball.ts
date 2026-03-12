@@ -3,7 +3,6 @@ import { BALL, PITCH, GOAL } from '../config/constants';
 
 export class Ball {
   sprite: Phaser.Physics.Arcade.Sprite;
-  private velocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2(0, 0);
   isFree = true;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
@@ -25,15 +24,13 @@ export class Ball {
   followOwner(ownerX: number, ownerY: number, facingX: number, facingY: number): void {
     const offsetDist = 18;
     this.sprite.setPosition(ownerX + facingX * offsetDist, ownerY + facingY * offsetDist);
-    this.velocity.set(0, 0);
     this.sprite.setVelocity(0, 0);
     this.isFree = false;
   }
 
   kick(dirX: number, dirY: number, speed: number): void {
     const len = Math.sqrt(dirX * dirX + dirY * dirY) || 1;
-    this.velocity.set((dirX / len) * speed, (dirY / len) * speed);
-    this.sprite.setVelocity(this.velocity.x, this.velocity.y);
+    this.sprite.setVelocity((dirX / len) * speed, (dirY / len) * speed);
     this.isFree = true;
   }
 
@@ -57,7 +54,6 @@ export class Ball {
     const cy = PITCH.y + PITCH.height / 2;
     this.sprite.setPosition(cx, cy);
     this.sprite.setVelocity(0, 0);
-    this.velocity.set(0, 0);
     this.isFree = true;
   }
 

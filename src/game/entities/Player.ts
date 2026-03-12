@@ -17,8 +17,6 @@ export class Player {
     this.sprite = scene.physics.add.sprite(x, y, 'player-tex');
     this.sprite.setCircle(PLAYER.radius);
     this.sprite.setCollideWorldBounds(true);
-    this.sprite.setDamping(true);
-    this.sprite.setDrag(0.9);
   }
 
   update(cursors: Phaser.Types.Input.Keyboard.CursorKeys, wasd: Record<string, Phaser.Input.Keyboard.Key>): void {
