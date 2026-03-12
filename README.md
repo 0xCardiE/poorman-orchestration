@@ -1,6 +1,6 @@
 # Browser Football Game
 
-Minimal Vite + TypeScript + Phaser 3 scaffold for a lightweight 2D browser football game. The current state provides a working app shell, a single Phaser match scene, ESLint, and Vitest so the next milestones can focus on gameplay.
+Minimal Vite + TypeScript + Phaser 3 scaffold for a lightweight 2D browser football game. The current state provides a working app shell, a main menu, a dedicated match scene with a simple pitch, ESLint, and Vitest so the next milestones can focus on gameplay.
 
 ## Setup
 
@@ -15,6 +15,8 @@ Start the local dev server:
 ```bash
 npm run dev
 ```
+
+Start a match from the main menu with the on-screen button or by pressing `Enter` / `Space`. In the match scene, press `Esc` to return to the menu.
 
 ## Available Commands
 
@@ -35,4 +37,4 @@ npm run dev
 
 ## Current Status
 
-The project currently boots into a minimal match scene that draws a pitch, a placeholder player, and a ball. No movement, passing, shooting, AI, score, or timer logic has been implemented yet.
+The project now boots into a main menu and transitions into a dedicated match scene that renders a simple football pitch with touchlines, a halfway line, penalty areas, goal areas, and goals. No movement, passing, shooting, AI, score, or timer logic has been implemented yet.
