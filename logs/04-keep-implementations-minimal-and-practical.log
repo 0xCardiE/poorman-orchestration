@@ -1,0 +1,12 @@
+Implemented a minimal cleanup in [MatchScene.ts](/Users/marko/Documents/Experiments/browser-football-game/src/game/scenes/MatchScene.ts):146 and [MatchScene.ts](/Users/marko/Documents/Experiments/browser-football-game/src/game/scenes/MatchScene.ts):390. I removed unused touch-control state fields and replaced the duplicated pass/shoot branches with one small helper, keeping behavior the same and the scene logic flatter.
+
+I did not update `README.md` because setup, controls, and user-visible behavior did not change.
+
+Verification was attempted but blocked by missing local dependencies in this workspace:
+- `npm run test` failed because `vitest` is not installed
+- `npm run build` failed because `tsc`/`vite` are not installed
+- `npm run lint` failed because `eslint` is not installed
+
+Short summary:
+- Completed: simplified `MatchScene` without changing gameplay
+- Remaining: install project dependencies, then rerun `npm run test`, `npm run build`, and `npm run lint` to fully verify the repo

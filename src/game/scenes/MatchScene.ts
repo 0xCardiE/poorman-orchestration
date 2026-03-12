@@ -54,10 +54,7 @@ interface TouchControls {
   moveInput: Vector2;
   passQueued: boolean;
   shootQueued: boolean;
-  moveBase?: Phaser.GameObjects.Arc;
   moveStick?: Phaser.GameObjects.Arc;
-  passButton?: Phaser.GameObjects.Container;
-  shootButton?: Phaser.GameObjects.Container;
 }
 
 const TOUCH_MOVE_CENTER = {
@@ -146,22 +143,19 @@ export class MatchScene extends Phaser.Scene {
 
     moveActor(this.state.player, playerInput, deltaSeconds, PITCH_BOUNDS);
 
-    if (
-      this.isJustDown(this.keys?.pass)
-      || this.touchControls.passQueued
-    ) {
-      kickBall(this.state, this.getActionDirection(playerInput), BALL_PASS_SPEED);
-    }
-
-    if (
-      this.isJustDown(this.keys?.shoot)
-      || this.touchControls.shootQueued
-    ) {
-      kickBall(this.state, this.getActionDirection(playerInput), BALL_SHOT_SPEED);
-    }
-
-    this.touchControls.passQueued = false;
-    this.touchControls.shootQueued = false;
+    const actionDirection = this.getActionDirection(playerInput);
+    this.tryPlayerKick(
+      this.isJustDown(this.keys?.pass),
+      'passQueued',
+      BALL_PASS_SPEED,
+      actionDirection,
+    );
+    this.tryPlayerKick(
+      this.isJustDown(this.keys?.shoot),
+      'shootQueued',
+      BALL_SHOT_SPEED,
+      actionDirection,
+    );
 
     const opponentInput = getOpponentInput(this.state);
     moveActor(this.state.opponent, opponentInput, deltaSeconds, PITCH_BOUNDS);
@@ -331,7 +325,7 @@ export class MatchScene extends Phaser.Scene {
     this.controlsHintText?.setText('Touch pad moves  |  Tap PASS or SHOOT  |  Tap full-time banner to restart');
     this.controlsHintText?.setFontSize('16px');
 
-    const moveBase = this.add.circle(
+    this.add.circle(
       TOUCH_MOVE_CENTER.x,
       TOUCH_MOVE_CENTER.y,
       TOUCH_MOVE_RADIUS,
@@ -365,10 +359,7 @@ export class MatchScene extends Phaser.Scene {
       this.touchControls.shootQueued = true;
     });
 
-    this.touchControls.moveBase = moveBase;
     this.touchControls.moveStick = moveStick;
-    this.touchControls.passButton = passButton;
-    this.touchControls.shootButton = shootButton;
 
     this.input.on('pointerdown', this.handleTouchPointerDown, this);
     this.input.on('pointermove', this.handleTouchPointerMove, this);
@@ -394,6 +385,19 @@ export class MatchScene extends Phaser.Scene {
     }
 
     return this.state.player.facing;
+  }
+
+  private tryPlayerKick(
+    keyboardPressed: boolean,
+    queuedAction: 'passQueued' | 'shootQueued',
+    speed: number,
+    direction: Vector2,
+  ): void {
+    if (keyboardPressed || this.touchControls[queuedAction]) {
+      kickBall(this.state, direction, speed);
+    }
+
+    this.touchControls[queuedAction] = false;
   }
 
   private syncView(): void {
