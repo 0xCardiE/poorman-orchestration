@@ -1,0 +1,70 @@
+.app-shell {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+.hero {
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: #8a5a00;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(2.25rem, 6vw, 4rem);
+  line-height: 1;
+}
+
+.intro {
+  max-width: 42rem;
+  margin: 1rem 0 0;
+  color: #3d4451;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.panel {
+  padding: 1.5rem;
+  border: 1px solid #d7d4ca;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 30px rgba(36, 31, 20, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.section-list {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.section-list li {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.section-list span,
+.panel p {
+  color: #4b5563;
+  line-height: 1.6;
+}

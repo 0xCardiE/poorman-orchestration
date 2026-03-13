@@ -1,39 +1,59 @@
 # Niche Research Digest
 
-Niche Research Digest is a local-first web app for collecting sources, organizing them by topic, linking claims across sources, and generating concise digest views.
+Niche Research Digest is a local-first web app for collecting sources, organizing research by topic, linking claims across sources, and producing concise topic digests.
 
-## Project intent
+## Current status
 
-This repository is set up to be driven by an autonomous coding loop. The repo-level instructions live in `AGENTS.md`, the milestone plan lives in `PLANS.md`, and the immediate work queue lives in `tasks/todo/`.
+Milestone 1 is scaffolded with:
+- Vite
+- React
+- TypeScript
+- ESLint
+- Vitest
+- the initial feature-oriented folder structure from `AGENTS.md`
 
-## Intended v1
+The current app is intentionally minimal. It provides a simple shell only, without product features yet.
 
-The first useful version should support:
-- source capture with title, URL, type, publisher, date, topic, tags, notes
-- topic organization
-- manual summaries and key takeaways per source
-- claim capture and simple relationship labels
-- digest views that surface recent additions and conflicting perspectives
-- search and filtering
-- local persistence
+## Project structure
 
-## Runner workflow
-
-Use:
-
-```bash
-./run.sh
+```text
+src/
+  app/
+  components/
+  features/
+    claims/
+    digests/
+    sources/
+    topics/
+  lib/
+  types/
+tests/
 ```
 
-The runner will:
-- read project instructions from `AGENTS.md` and `PLANS.md`
-- execute the next task from `tasks/todo/`
-- log output to `logs/`
-- move completed tasks to `tasks/done/`
-- move failed tasks to `tasks/failed/`
+## Setup
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+## Available commands
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+npm run test
+```
 
 ## Notes
 
-- The initial build should stay local-first and avoid backend complexity.
-- Prefer a simple React + TypeScript implementation.
-- Keep the MVP focused on usefulness, clarity, and incremental delivery.
+The app shell is intentionally feature-light for Milestone 1. It establishes the TypeScript, linting, testing, and folder conventions that later tasks will build on.
