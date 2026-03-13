@@ -14,7 +14,16 @@ Open the URL shown (e.g. http://localhost:5173).
 ## Controls
 
 - **Menu:** SPACE — start match
-- **Match:** Arrow keys — move · **X** — pass · **C** — shoot · **R** — restart match
+- **Match:**
+  - **Arrows** — move (acceleration-based)
+  - **Shift** — sprint (drains stamina)
+  - **Q** — dribble (close control, slower)
+  - **X** — short pass · **Z** — long pass (or finesse shot when shooting)
+  - **C** — hold to charge shot, release to shoot
+  - **E** — tackle (when near opponent with ball)
+  - **Tab** — switch controlled player (5 per team)
+  - **R** — restart match
+- **Set pieces (throw-in/corner):** Arrows aim, Up/Down power, X to take
 
 ## Commands
 
@@ -28,14 +37,14 @@ Open the URL shown (e.g. http://localhost:5173).
 
 ## Current status
 
-- **Done:** Full v1: scaffold, pitch, player & opponent, ball, possession, pass, shoot, goals, score, 90s timer, restart. Desktop keyboard controls.
-- **Optional later:** Basic mobile controls, extra polish.
+- **Done:** Base game (1–8) plus advanced gameplay (9–21): stamina & sprint, acceleration & dribble, tackling & fouls, ball spin/curve, out-of-play & set pieces (throw-in, corner, goal kick), short/long pass & charge shot & finesse, goalkeepers (both ends), full teams (5v5), formations (2-1-2, 3-1-1, 2-2-1), player switching (Tab), opponent pressing & formation, two halves & half-time, stoppage time, HUD (stamina, selected player, set-piece). Desktop keyboard controls.
+- **Optional later:** Basic mobile controls, difficulty select, one-twos, substitutions.
 
 ## Summary (task 11)
 
-**Completed:** All 8 milestones from PLANS.md — scaffold (Vite, TypeScript, Phaser 3, ESLint, Vitest), main menu & match scene, pitch with goals, one controllable player and one opponent, ball with possession, pass (X) and shoot (C), score and 90s timer, restart (R). Game is playable end-to-end.
+**Completed:** Base MVP plus all advanced milestones: movement depth (stamina, sprint, acceleration, dribble), tackling and first-touch, ball physics (spin/curve), set pieces (throw-in, corner, goal kick), passing depth (short/long), shooting depth (charge, finesse), goalkeepers, full team and formations, player switching, opponent AI (pressing, formation), match flow (halves, half-time, stoppage time), fouls, HUD polish.
 
-**Remaining:** None for v1. Optional: basic mobile touch controls, further polish.
+**Remaining:** Optional: difficulty menu, mobile controls, subs, one-twos.
 
 ---
 

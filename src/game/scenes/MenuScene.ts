@@ -14,8 +14,12 @@ export class MenuScene extends Phaser.Scene {
       fontSize: '18px',
       color: '#aaa',
     }).setOrigin(0.5);
-    this.add.text(400, 380, 'Match: Arrows move · X pass · C shoot · R restart', {
-      fontSize: '14px',
+    this.add.text(400, 360, 'Arrows move · Shift sprint · Q dribble · X pass · Z long pass', {
+      fontSize: '13px',
+      color: '#888',
+    }).setOrigin(0.5);
+    this.add.text(400, 390, 'Hold C to charge shot, release to shoot · E tackle · Tab switch player · R restart', {
+      fontSize: '13px',
       color: '#888',
     }).setOrigin(0.5);
     this.input.keyboard?.once('keydown-SPACE', () => {
