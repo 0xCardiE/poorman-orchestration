@@ -61,17 +61,30 @@
 }
 
 .reset-button,
-.nav-item {
+.nav-item,
+.primary-button,
+.secondary-button {
   border: 1px solid #cdbf93;
   border-radius: 0.9rem;
-  background: #fffcf2;
   color: inherit;
 }
 
-.reset-button {
+.reset-button,
+.primary-button,
+.secondary-button {
   padding: 0.8rem 1rem;
-  font-weight: 600;
   cursor: pointer;
+  font-weight: 600;
+}
+
+.reset-button,
+.secondary-button {
+  background: #fffcf2;
+}
+
+.primary-button {
+  background: #f2d57c;
+  border-color: #bb9536;
 }
 
 .section-nav {
@@ -168,6 +181,157 @@
   font-size: 1.05rem;
 }
 
+.source-list,
+.takeaway-list {
+  padding: 0;
+  margin: 1.25rem 0 0;
+  list-style: none;
+}
+
+.source-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.source-card {
+  padding: 1rem;
+  border: 1px solid #e6dcc3;
+  border-radius: 1rem;
+  background: #fffdf7;
+}
+
+.source-card.selected {
+  border-color: #8a5a00;
+  box-shadow: 0 10px 24px rgba(99, 69, 19, 0.12);
+}
+
+.source-card-header,
+.source-card-actions,
+.field-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.source-card-header,
+.field-row {
+  justify-content: space-between;
+  align-items: start;
+}
+
+.source-card-text {
+  margin: 0.85rem 0;
+  color: #3d4451;
+}
+
+.source-card-grid,
+.detail-grid {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.source-card-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.source-card-grid dt,
+.detail-grid dt {
+  margin-bottom: 0.25rem;
+  color: #8a5a00;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.source-card-grid dd,
+.detail-grid dd {
+  margin: 0;
+  color: #4b5563;
+}
+
+.source-card-actions {
+  margin-top: 1rem;
+}
+
+.source-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.field,
+.field-group {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+}
+
+.field span,
+.field-group legend {
+  font-weight: 600;
+}
+
+.field input,
+.field textarea,
+.field select {
+  width: 100%;
+  padding: 0.8rem 0.85rem;
+  border: 1px solid #d7d4ca;
+  border-radius: 0.85rem;
+  background: #fffef9;
+}
+
+.field-group {
+  padding: 0;
+  border: 0;
+}
+
+.checkbox-grid {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.checkbox-option {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e6dcc3;
+  border-radius: 0.85rem;
+  background: #fffdf7;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.detail-grid {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-top: 1.25rem;
+}
+
+.detail-section {
+  margin-top: 1.25rem;
+}
+
+.detail-section p:last-child {
+  margin-bottom: 0;
+}
+
+.takeaway-list {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.takeaway-list li {
+  margin-left: 1.2rem;
+  color: #4b5563;
+}
+
 .pill {
   display: inline-flex;
   align-items: center;
@@ -207,5 +371,11 @@
   .hero,
   .content-grid {
     grid-template-columns: 1fr;
+  }
+
+  .source-card-header,
+  .source-card-actions,
+  .field-row {
+    flex-direction: column;
   }
 }

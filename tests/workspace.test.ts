@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
+import {
+  createEmptySourceFormValues,
+  createSourceRecord,
+} from "../src/features/sources/sourceUtils";
 import { createDemoWorkspaceData } from "../src/lib/demoData";
-import { getSectionCount, getTopicName } from "../src/lib/workspace";
+import {
+  getSectionCount,
+  getTopicName,
+  saveSourceRecord,
+} from "../src/lib/workspace";
 
 describe("createDemoWorkspaceData", () => {
   it("creates the seeded records needed for the app shell", () => {
@@ -29,5 +37,23 @@ describe("workspace helpers", () => {
       "Video Analysis Workflows",
     );
     expect(getTopicName(workspace, "missing")).toBe("Unknown topic");
+  });
+
+  it("saves new source records and updates workspace metadata", () => {
+    const formValues = createEmptySourceFormValues("2026-03-13");
+    const nextSource = createSourceRecord(
+      {
+        ...formValues,
+        title: "Fresh source",
+      },
+      "2026-03-13T10:00:00.000Z",
+    );
+
+    const nextWorkspace = saveSourceRecord(workspace, nextSource);
+
+    expect(nextWorkspace.sources[0]?.id).toBe(nextSource.id);
+    expect(nextWorkspace.sources).toHaveLength(4);
+    expect(nextWorkspace.meta.seeded).toBe(false);
+    expect(nextWorkspace.meta.lastUpdatedAt).toBe("2026-03-13T10:00:00.000Z");
   });
 });

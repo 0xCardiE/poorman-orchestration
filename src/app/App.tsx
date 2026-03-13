@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { SectionNavigation } from "../components/SectionNavigation";
-import { getTopicName } from "../lib/workspace";
+import { getTopicName, saveSourceRecord } from "../lib/workspace";
 import type { AppSectionId } from "../types/app";
 import { useWorkspace } from "./useWorkspace";
 import { navigationItems } from "../lib/navigation";
+import { SourceLibrarySection } from "../features/sources/SourceLibrarySection";
+import type { SourceRecord } from "../types/source";
 import "./App.css";
 
 function renderSectionContent(
@@ -12,38 +14,6 @@ function renderSectionContent(
   workspace: ReturnType<typeof useWorkspace>["workspace"],
 ) {
   switch (activeSection) {
-    case "sources":
-      return (
-        <section className="panel">
-          <div className="panel-heading">
-            <div>
-              <p className="panel-label">Source library</p>
-              <h2>Recent sources</h2>
-            </div>
-            <span className="pill">{workspace.sources.length} saved</span>
-          </div>
-          <ul className="record-list">
-            {workspace.sources.map((source) => (
-              <li key={source.id} className="record-item">
-                <div className="record-header">
-                  <h3>{source.title}</h3>
-                  <span className="pill subtle">{source.type}</span>
-                </div>
-                <p className="record-meta">
-                  {source.publisher} · {source.publishedAt}
-                </p>
-                <p>{source.summary}</p>
-                <p className="record-meta">
-                  Topics:{" "}
-                  {source.topicIds
-                    .map((topicId) => getTopicName(workspace, topicId))
-                    .join(", ")}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      );
     case "topics":
       return (
         <section className="panel">
@@ -124,14 +94,21 @@ function renderSectionContent(
           </ul>
         </section>
       );
+    case "sources":
+      return null;
   }
 }
 
 export function App() {
   const [activeSection, setActiveSection] = useState<AppSectionId>("sources");
-  const { resetWorkspace, workspace } = useWorkspace();
+  const { resetWorkspace, setWorkspace, workspace } = useWorkspace();
 
   const activeItem = navigationItems.find((item) => item.id === activeSection)!;
+  const isSourcesSection = activeSection === "sources";
+
+  function handleSaveSource(source: SourceRecord) {
+    setWorkspace((currentWorkspace) => saveSourceRecord(currentWorkspace, source));
+  }
 
   return (
     <div className="app-shell">
@@ -168,23 +145,29 @@ export function App() {
       />
 
       <main className="content-grid">
-        {renderSectionContent(activeSection, workspace)}
+        {isSourcesSection ? (
+          <SourceLibrarySection workspace={workspace} onSaveSource={handleSaveSource} />
+        ) : (
+          <>
+            {renderSectionContent(activeSection, workspace)}
 
-        <aside className="side-column">
-          <section className="panel">
-            <p className="panel-label">Current section</p>
-            <h2>{activeItem.label}</h2>
-            <p>{activeItem.description}</p>
-            <p className="record-meta">
-              Last workspace update: {workspace.meta.lastUpdatedAt.slice(0, 10)}
-            </p>
-          </section>
+            <aside className="side-column">
+              <section className="panel">
+                <p className="panel-label">Current section</p>
+                <h2>{activeItem.label}</h2>
+                <p>{activeItem.description}</p>
+                <p className="record-meta">
+                  Last workspace update: {workspace.meta.lastUpdatedAt.slice(0, 10)}
+                </p>
+              </section>
 
-          <EmptyState
-            title="Capture and editing flows land next"
-            description={`The ${activeItem.label.toLowerCase()} area is seeded with example records, but create, edit, and linking actions are still intentionally empty in this milestone.`}
-          />
-        </aside>
+              <EmptyState
+                title="Capture and editing flows land next"
+                description={`The ${activeItem.label.toLowerCase()} area is seeded with example records, but create, edit, and linking actions are still intentionally empty in this milestone.`}
+              />
+            </aside>
+          </>
+        )}
       </main>
     </div>
   );
