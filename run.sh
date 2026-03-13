@@ -84,6 +84,8 @@ run_task() {
   } | codex exec | tee "$log_file"; then
     echo "Task failed"
     mv "$task_file" "$FAILED_DIR/"
+    git -C "$ROOT_DIR" add -A || true
+    git -C "$ROOT_DIR" commit -m "codex failed $task_name" || true
     return 1
   fi
 
@@ -92,10 +94,11 @@ run_task() {
     (cd "$ROOT_DIR" && npm run build) || true
   fi
 
+  # Move task to done *before* commit so the move is included in the same commit
+  mv "$task_file" "$DONE_DIR/"
+
   git -C "$ROOT_DIR" add -A || true
   git -C "$ROOT_DIR" commit -m "codex completed $task_name" || true
-
-  mv "$task_file" "$DONE_DIR/"
 }
 
 while true; do
