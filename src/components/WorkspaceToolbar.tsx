@@ -43,7 +43,7 @@ export function WorkspaceToolbar({
       </div>
 
       <div className="toolbar-grid">
-        <label className="field">
+        <label className="field toolbar-search-field">
           <span>Search</span>
           <input
             type="search"
