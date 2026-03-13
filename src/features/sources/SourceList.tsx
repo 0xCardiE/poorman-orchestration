@@ -9,6 +9,7 @@ interface SourceListProps {
   onCreateSource: () => void;
   onEditSource: (sourceId: string) => void;
   onSelectSource: (sourceId: string) => void;
+  onOpenTopic: (topicId: string) => void;
 }
 
 export function SourceList({
@@ -18,6 +19,7 @@ export function SourceList({
   onCreateSource,
   onEditSource,
   onSelectSource,
+  onOpenTopic,
 }: SourceListProps) {
   return (
     <section className="panel">
@@ -59,7 +61,24 @@ export function SourceList({
               <dl className="source-card-grid">
                 <div>
                   <dt>Topics</dt>
-                  <dd>{topicNames.join(", ") || "None assigned"}</dd>
+                  <dd>
+                    {source.topicIds.length > 0 ? (
+                      <div className="tag-row">
+                        {source.topicIds.map((topicId, index) => (
+                          <button
+                            key={topicId}
+                            type="button"
+                            className="topic-link-button"
+                            onClick={() => onOpenTopic(topicId)}
+                          >
+                            {topicNames[index]}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      "None assigned"
+                    )}
+                  </dd>
                 </div>
                 <div>
                   <dt>Tags</dt>

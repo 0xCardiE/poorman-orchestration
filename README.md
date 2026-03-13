@@ -4,7 +4,7 @@ Niche Research Digest is a local-first web app for collecting sources, organizin
 
 ## Current status
 
-Milestone 2 is in place with:
+Milestones 1 through 4 are in place with:
 - Vite
 - React
 - TypeScript
@@ -14,8 +14,10 @@ Milestone 2 is in place with:
 - core data model modules for sources, topics, claims, and digest items
 - local-first persistence via `localStorage`
 - seeded demo workspace data for verifying the shell
+- source create and edit flows with manual summaries and takeaways
+- topic views that group related sources, show shared tags, and surface recent additions
 
-The current app is still intentionally straightforward. It shows read-only demo records and leaves source editing and deeper workflows for later milestones.
+The current app is still intentionally straightforward. Claims and digest areas remain seeded read-only views while deeper workflows land in later milestones.
 
 ## Project structure
 
@@ -71,4 +73,4 @@ npm run test
 
 ## Notes
 
-The app writes a seeded demo workspace into `localStorage` on first load and includes a reset action to restore that demo state. This milestone focuses on the app shell and data model only; create/edit flows are still pending.
+The app writes a seeded demo workspace into `localStorage` on first load and includes a reset action to restore that demo state. Topic navigation is intentionally lightweight: sources can belong to multiple topics, and topic relationships are derived from those shared source assignments instead of a nested taxonomy.

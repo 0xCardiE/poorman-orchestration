@@ -7,6 +7,7 @@ interface SourceDetailProps {
   workspace: WorkspaceData;
   onEditSource: (sourceId: string) => void;
   onCreateSource: () => void;
+  onOpenTopic: (topicId: string) => void;
 }
 
 export function SourceDetail({
@@ -14,6 +15,7 @@ export function SourceDetail({
   workspace,
   onEditSource,
   onCreateSource,
+  onOpenTopic,
 }: SourceDetailProps) {
   const topicNames = source.topicIds.map((topicId) =>
     getTopicName(workspace, topicId),
@@ -50,7 +52,24 @@ export function SourceDetail({
         </div>
         <div>
           <dt>Topics</dt>
-          <dd>{topicNames.join(", ") || "None assigned"}</dd>
+          <dd>
+            {source.topicIds.length > 0 ? (
+              <div className="tag-row">
+                {source.topicIds.map((topicId, index) => (
+                  <button
+                    key={topicId}
+                    type="button"
+                    className="topic-link-button"
+                    onClick={() => onOpenTopic(topicId)}
+                  >
+                    {topicNames[index]}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              "None assigned"
+            )}
+          </dd>
         </div>
         <div>
           <dt>Tags</dt>

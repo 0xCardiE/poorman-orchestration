@@ -6,6 +6,7 @@ import type { AppSectionId } from "../types/app";
 import { useWorkspace } from "./useWorkspace";
 import { navigationItems } from "../lib/navigation";
 import { SourceLibrarySection } from "../features/sources/SourceLibrarySection";
+import { TopicLibrarySection } from "../features/topics/TopicLibrarySection";
 import type { SourceRecord } from "../types/source";
 import "./App.css";
 
@@ -101,6 +102,8 @@ function renderSectionContent(
 
 export function App() {
   const [activeSection, setActiveSection] = useState<AppSectionId>("sources");
+  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const { resetWorkspace, setWorkspace, workspace } = useWorkspace();
 
   const activeItem = navigationItems.find((item) => item.id === activeSection)!;
@@ -108,6 +111,16 @@ export function App() {
 
   function handleSaveSource(source: SourceRecord) {
     setWorkspace((currentWorkspace) => saveSourceRecord(currentWorkspace, source));
+  }
+
+  function handleOpenTopic(topicId: string) {
+    setSelectedTopicId(topicId);
+    setActiveSection("topics");
+  }
+
+  function handleOpenSource(sourceId: string) {
+    setSelectedSourceId(sourceId);
+    setActiveSection("sources");
   }
 
   return (
@@ -146,7 +159,20 @@ export function App() {
 
       <main className="content-grid">
         {isSourcesSection ? (
-          <SourceLibrarySection workspace={workspace} onSaveSource={handleSaveSource} />
+          <SourceLibrarySection
+            workspace={workspace}
+            selectedSourceId={selectedSourceId}
+            onOpenTopic={handleOpenTopic}
+            onSaveSource={handleSaveSource}
+            onSelectSource={setSelectedSourceId}
+          />
+        ) : activeSection === "topics" ? (
+          <TopicLibrarySection
+            workspace={workspace}
+            selectedTopicId={selectedTopicId}
+            onOpenSource={handleOpenSource}
+            onSelectTopic={setSelectedTopicId}
+          />
         ) : (
           <>
             {renderSectionContent(activeSection, workspace)}

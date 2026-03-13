@@ -254,6 +254,10 @@
   margin-top: 1rem;
 }
 
+.compact-list {
+  margin-top: 0.75rem;
+}
+
 .source-form {
   display: grid;
   gap: 1rem;
@@ -347,6 +351,24 @@
   background: #eef0e5;
   color: #44504e;
 }
+
+.tag-row {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.topic-link-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid #d7d4ca;
+  border-radius: 999px;
+  background: #fffef9;
+  color: #44504e;
+  cursor: pointer;
+  font: inherit;
+ }
 
 .record-meta,
 .panel p {

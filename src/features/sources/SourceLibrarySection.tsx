@@ -14,14 +14,20 @@ import type { WorkspaceData } from "../../types/workspace";
 
 interface SourceLibrarySectionProps {
   workspace: WorkspaceData;
+  selectedSourceId: string | null;
   onSaveSource: (source: SourceRecord) => void;
+  onSelectSource: (sourceId: string | null) => void;
+  onOpenTopic: (topicId: string) => void;
 }
 
 type EditorMode = "create" | "edit" | null;
 
 export function SourceLibrarySection({
   workspace,
+  selectedSourceId,
   onSaveSource,
+  onSelectSource,
+  onOpenTopic,
 }: SourceLibrarySectionProps) {
   const sortedSources = useMemo(
     () =>
@@ -31,9 +37,6 @@ export function SourceLibrarySection({
     [workspace.sources],
   );
 
-  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(
-    sortedSources[0]?.id ?? null,
-  );
   const [editorMode, setEditorMode] = useState<EditorMode>(null);
   const [formValues, setFormValues] = useState<SourceFormValues>(() =>
     createEmptySourceFormValues(getTodayDateValue()),
@@ -44,7 +47,7 @@ export function SourceLibrarySection({
 
   useEffect(() => {
     if (!selectedSourceId && sortedSources[0]) {
-      setSelectedSourceId(sortedSources[0].id);
+      onSelectSource(sortedSources[0].id);
       return;
     }
 
@@ -52,9 +55,9 @@ export function SourceLibrarySection({
       selectedSourceId &&
       !workspace.sources.some((source) => source.id === selectedSourceId)
     ) {
-      setSelectedSourceId(sortedSources[0]?.id ?? null);
+      onSelectSource(sortedSources[0]?.id ?? null);
     }
-  }, [selectedSourceId, sortedSources, workspace.sources]);
+  }, [onSelectSource, selectedSourceId, sortedSources, workspace.sources]);
 
   function handleCreateSource() {
     setEditorMode("create");
@@ -68,7 +71,7 @@ export function SourceLibrarySection({
       return;
     }
 
-    setSelectedSourceId(source.id);
+    onSelectSource(source.id);
     setEditorMode("edit");
     setFormValues(createSourceFormValues(source));
   }
@@ -90,7 +93,7 @@ export function SourceLibrarySection({
     );
 
     onSaveSource(nextSource);
-    setSelectedSourceId(nextSource.id);
+    onSelectSource(nextSource.id);
     setEditorMode(null);
     setFormValues(createSourceFormValues(nextSource));
   }
@@ -103,7 +106,8 @@ export function SourceLibrarySection({
         workspace={workspace}
         onCreateSource={handleCreateSource}
         onEditSource={handleEditSource}
-        onSelectSource={setSelectedSourceId}
+        onOpenTopic={onOpenTopic}
+        onSelectSource={(sourceId) => onSelectSource(sourceId)}
       />
 
       <aside className="side-column">
@@ -122,6 +126,7 @@ export function SourceLibrarySection({
             workspace={workspace}
             onEditSource={handleEditSource}
             onCreateSource={handleCreateSource}
+            onOpenTopic={onOpenTopic}
           />
         ) : (
           <SourceForm
