@@ -31,6 +31,12 @@ Open the URL shown (e.g. http://localhost:5173).
 - **Done:** Full v1: scaffold, pitch, player & opponent, ball, possession, pass, shoot, goals, score, 90s timer, restart. Desktop keyboard controls.
 - **Optional later:** Basic mobile controls, extra polish.
 
+## Summary (task 11)
+
+**Completed:** All 8 milestones from PLANS.md — scaffold (Vite, TypeScript, Phaser 3, ESLint, Vitest), main menu & match scene, pitch with goals, one controllable player and one opponent, ball with possession, pass (X) and shoot (C), score and 90s timer, restart (R). Game is playable end-to-end.
+
+**Remaining:** None for v1. Optional: basic mobile touch controls, further polish.
+
 ---
 
 # Poorman AI orchestration
