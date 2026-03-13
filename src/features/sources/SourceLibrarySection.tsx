@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { EmptyState } from "../../components/EmptyState";
 import { SourceDetail } from "./SourceDetail";
 import { SourceForm } from "./SourceForm";
 import { SourceList } from "./SourceList";
@@ -13,7 +14,9 @@ import type { SourceRecord } from "../../types/source";
 import type { WorkspaceData } from "../../types/workspace";
 
 interface SourceLibrarySectionProps {
+  hasActiveFilters: boolean;
   workspace: WorkspaceData;
+  visibleSources: SourceRecord[];
   selectedSourceId: string | null;
   onOpenClaim: (claimId: string) => void;
   onSaveSource: (source: SourceRecord) => void;
@@ -24,7 +27,9 @@ interface SourceLibrarySectionProps {
 type EditorMode = "create" | "edit" | null;
 
 export function SourceLibrarySection({
+  hasActiveFilters,
   workspace,
+  visibleSources,
   selectedSourceId,
   onOpenClaim,
   onSaveSource,
@@ -32,11 +37,8 @@ export function SourceLibrarySection({
   onOpenTopic,
 }: SourceLibrarySectionProps) {
   const sortedSources = useMemo(
-    () =>
-      [...workspace.sources].sort((left, right) =>
-        right.updatedAt.localeCompare(left.updatedAt),
-      ),
-    [workspace.sources],
+    () => [...visibleSources].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)),
+    [visibleSources],
   );
 
   const [editorMode, setEditorMode] = useState<EditorMode>(null);
@@ -44,8 +46,7 @@ export function SourceLibrarySection({
     createEmptySourceFormValues(getTodayDateValue()),
   );
 
-  const selectedSource =
-    workspace.sources.find((source) => source.id === selectedSourceId) ?? null;
+  const selectedSource = sortedSources.find((source) => source.id === selectedSourceId) ?? null;
 
   useEffect(() => {
     if (!selectedSourceId && sortedSources[0]) {
@@ -55,11 +56,11 @@ export function SourceLibrarySection({
 
     if (
       selectedSourceId &&
-      !workspace.sources.some((source) => source.id === selectedSourceId)
+      !sortedSources.some((source) => source.id === selectedSourceId)
     ) {
       onSelectSource(sortedSources[0]?.id ?? null);
     }
-  }, [onSelectSource, selectedSourceId, sortedSources, workspace.sources]);
+  }, [onSelectSource, selectedSourceId, sortedSources]);
 
   function handleCreateSource() {
     setEditorMode("create");
@@ -103,6 +104,7 @@ export function SourceLibrarySection({
   return (
     <>
       <SourceList
+        hasActiveFilters={hasActiveFilters}
         selectedSourceId={selectedSourceId}
         sources={sortedSources}
         workspace={workspace}
@@ -132,13 +134,15 @@ export function SourceLibrarySection({
             onOpenTopic={onOpenTopic}
           />
         ) : (
-          <SourceForm
-            formValues={formValues}
-            isEditing={false}
-            topics={workspace.topics}
-            onCancel={handleCancelEditor}
-            onSubmit={handleSubmit}
-            onValuesChange={setFormValues}
+          <EmptyState
+            title={
+              hasActiveFilters ? "No sources match the current filters" : "No sources yet"
+            }
+            description={
+              hasActiveFilters
+                ? "Clear or adjust the workspace filters to see more source records."
+                : "Add a source to start building a research library."
+            }
           />
         )}
 

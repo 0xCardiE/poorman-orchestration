@@ -1,5 +1,8 @@
 import { createDemoWorkspaceData } from "./demoData";
 import type { ClaimLink, ClaimRecord, ClaimRelationship } from "../types/claim";
+import type { DigestItemKind, DigestItemRecord } from "../types/digest";
+import type { SourceRecord, SourceType } from "../types/source";
+import type { TopicRecord } from "../types/topic";
 import type { WorkspaceData } from "../types/workspace";
 
 export const WORKSPACE_STORAGE_KEY = "niche-research-digest.workspace";
@@ -28,11 +31,111 @@ function isWorkspaceData(value: unknown): value is WorkspaceData {
 
 function normalizeWorkspaceData(workspace: WorkspaceData): WorkspaceData {
   return {
-    ...workspace,
     version: 2,
+    meta: normalizeWorkspaceMeta(workspace.meta, workspace.meta.lastUpdatedAt),
+    sources: workspace.sources
+      .map((source) => normalizeSourceRecord(source))
+      .filter((source): source is SourceRecord => source !== null),
+    topics: workspace.topics
+      .map((topic) => normalizeTopicRecord(topic))
+      .filter((topic): topic is TopicRecord => topic !== null),
     claims: workspace.claims
       .map((claim) => normalizeClaimRecord(claim))
       .filter((claim): claim is ClaimRecord => claim !== null),
+    digestItems: workspace.digestItems
+      .map((digestItem) => normalizeDigestItemRecord(digestItem))
+      .filter((digestItem): digestItem is DigestItemRecord => digestItem !== null),
+  };
+}
+
+function normalizeWorkspaceMeta(
+  value: WorkspaceData["meta"],
+  fallbackUpdatedAt: string,
+): WorkspaceData["meta"] {
+  return {
+    name: typeof value?.name === "string" ? value.name : "Imported workspace",
+    seeded: Boolean(value?.seeded),
+    lastUpdatedAt:
+      typeof value?.lastUpdatedAt === "string"
+        ? value.lastUpdatedAt
+        : fallbackUpdatedAt,
+  };
+}
+
+function normalizeSourceRecord(value: unknown): SourceRecord | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as Partial<SourceRecord>;
+
+  if (
+    typeof candidate.id !== "string" ||
+    typeof candidate.title !== "string" ||
+    !isSourceType(candidate.type) ||
+    typeof candidate.url !== "string" ||
+    typeof candidate.publisher !== "string" ||
+    typeof candidate.publishedAt !== "string" ||
+    typeof candidate.notes !== "string" ||
+    typeof candidate.summary !== "string" ||
+    typeof candidate.createdAt !== "string" ||
+    typeof candidate.updatedAt !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: candidate.id,
+    title: candidate.title,
+    url: candidate.url,
+    type: candidate.type,
+    publisher: candidate.publisher,
+    publishedAt: candidate.publishedAt,
+    topicIds: uniqueStrings(
+      Array.isArray(candidate.topicIds) ? candidate.topicIds.filter(isString) : [],
+    ),
+    tags: uniqueStrings(Array.isArray(candidate.tags) ? candidate.tags.filter(isString) : []),
+    notes: candidate.notes,
+    summary: candidate.summary,
+    keyTakeaways: uniqueStrings(
+      Array.isArray(candidate.keyTakeaways)
+        ? candidate.keyTakeaways.filter(isString)
+        : [],
+    ),
+    createdAt: candidate.createdAt,
+    updatedAt: candidate.updatedAt,
+  };
+}
+
+function normalizeTopicRecord(value: unknown): TopicRecord | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as Partial<TopicRecord>;
+
+  if (
+    typeof candidate.id !== "string" ||
+    typeof candidate.name !== "string" ||
+    typeof candidate.description !== "string" ||
+    typeof candidate.createdAt !== "string" ||
+    typeof candidate.updatedAt !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: candidate.id,
+    name: candidate.name,
+    description: candidate.description,
+    tags: uniqueStrings(Array.isArray(candidate.tags) ? candidate.tags.filter(isString) : []),
+    questionPrompts: uniqueStrings(
+      Array.isArray(candidate.questionPrompts)
+        ? candidate.questionPrompts.filter(isString)
+        : [],
+    ),
+    createdAt: candidate.createdAt,
+    updatedAt: candidate.updatedAt,
   };
 }
 
@@ -99,8 +202,59 @@ function normalizeClaimLinks(value: unknown): ClaimLink[] {
     .filter((entry): entry is ClaimLink => entry !== null);
 }
 
+function normalizeDigestItemRecord(value: unknown): DigestItemRecord | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const candidate = value as Partial<DigestItemRecord>;
+
+  if (
+    typeof candidate.id !== "string" ||
+    typeof candidate.topicId !== "string" ||
+    typeof candidate.title !== "string" ||
+    typeof candidate.summary !== "string" ||
+    !isDigestItemKind(candidate.kind) ||
+    typeof candidate.createdAt !== "string"
+  ) {
+    return null;
+  }
+
+  return {
+    id: candidate.id,
+    topicId: candidate.topicId,
+    title: candidate.title,
+    summary: candidate.summary,
+    kind: candidate.kind,
+    sourceIds: uniqueStrings(
+      Array.isArray(candidate.sourceIds) ? candidate.sourceIds.filter(isString) : [],
+    ),
+    claimIds: uniqueStrings(
+      Array.isArray(candidate.claimIds) ? candidate.claimIds.filter(isString) : [],
+    ),
+    createdAt: candidate.createdAt,
+  };
+}
+
 function isClaimRelationship(value: unknown): value is ClaimRelationship {
   return value === "support" || value === "contradict" || value === "neutral";
+}
+
+function isDigestItemKind(value: unknown): value is DigestItemKind {
+  return (
+    value === "recent-source" ||
+    value === "claim-watch" ||
+    value === "open-question"
+  );
+}
+
+function isSourceType(value: unknown): value is SourceType {
+  return (
+    value === "article" ||
+    value === "paper" ||
+    value === "report" ||
+    value === "note"
+  );
 }
 
 function isString(value: unknown): value is string {
@@ -126,10 +280,10 @@ export function loadWorkspaceData(): WorkspaceData {
   }
 
   try {
-    const parsedValue = JSON.parse(savedValue) as unknown;
+    const workspace = parseWorkspaceData(savedValue);
 
-    if (isWorkspaceData(parsedValue)) {
-      return normalizeWorkspaceData(parsedValue);
+    if (workspace) {
+      return workspace;
     }
   } catch {
     window.localStorage.removeItem(WORKSPACE_STORAGE_KEY);
@@ -145,6 +299,20 @@ export function saveWorkspaceData(workspace: WorkspaceData) {
   }
 
   window.localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(workspace));
+}
+
+export function parseWorkspaceData(value: string): WorkspaceData | null {
+  const parsedValue = JSON.parse(value) as unknown;
+
+  if (!isWorkspaceData(parsedValue)) {
+    return null;
+  }
+
+  return normalizeWorkspaceData(parsedValue);
+}
+
+export function exportWorkspaceData(workspace: WorkspaceData): string {
+  return JSON.stringify(workspace, null, 2);
 }
 
 export function resetWorkspaceData() {

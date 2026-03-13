@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { EmptyState } from "../../components/EmptyState";
 import { ClaimDetail } from "./ClaimDetail";
 import { ClaimForm } from "./ClaimForm";
 import { ClaimList } from "./ClaimList";
@@ -12,7 +13,9 @@ import type { ClaimRecord } from "../../types/claim";
 import type { WorkspaceData } from "../../types/workspace";
 
 interface ClaimLibrarySectionProps {
+  hasActiveFilters: boolean;
   workspace: WorkspaceData;
+  visibleClaims: ClaimRecord[];
   selectedClaimId: string | null;
   onOpenSource: (sourceId: string) => void;
   onOpenTopic: (topicId: string) => void;
@@ -23,7 +26,9 @@ interface ClaimLibrarySectionProps {
 type EditorMode = "create" | "edit" | null;
 
 export function ClaimLibrarySection({
+  hasActiveFilters,
   workspace,
+  visibleClaims,
   selectedClaimId,
   onOpenSource,
   onOpenTopic,
@@ -31,11 +36,8 @@ export function ClaimLibrarySection({
   onSelectClaim,
 }: ClaimLibrarySectionProps) {
   const sortedClaims = useMemo(
-    () =>
-      [...workspace.claims].sort((left, right) =>
-        right.updatedAt.localeCompare(left.updatedAt),
-      ),
-    [workspace.claims],
+    () => [...visibleClaims].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)),
+    [visibleClaims],
   );
   const defaultTopicId = workspace.topics[0]?.id ?? "";
   const [editorMode, setEditorMode] = useState<EditorMode>(null);
@@ -44,8 +46,7 @@ export function ClaimLibrarySection({
     createEmptyClaimFormValues(defaultTopicId),
   );
 
-  const selectedClaim =
-    workspace.claims.find((claim) => claim.id === selectedClaimId) ?? null;
+  const selectedClaim = sortedClaims.find((claim) => claim.id === selectedClaimId) ?? null;
   const editingClaimId = editorMode === "edit" ? selectedClaim?.id : null;
 
   const relatedClaimOptions = useMemo(
@@ -67,11 +68,11 @@ export function ClaimLibrarySection({
 
     if (
       selectedClaimId &&
-      !workspace.claims.some((claim) => claim.id === selectedClaimId)
+      !sortedClaims.some((claim) => claim.id === selectedClaimId)
     ) {
       onSelectClaim(sortedClaims[0]?.id ?? null);
     }
-  }, [onSelectClaim, selectedClaimId, sortedClaims, workspace.claims]);
+  }, [onSelectClaim, selectedClaimId, sortedClaims]);
 
   useEffect(() => {
     if (editorMode === null) {
@@ -138,6 +139,7 @@ export function ClaimLibrarySection({
     <>
       <ClaimList
         claims={sortedClaims}
+        hasActiveFilters={hasActiveFilters}
         selectedClaimId={selectedClaimId}
         workspace={workspace}
         onCreateClaim={handleCreateClaim}
@@ -172,19 +174,15 @@ export function ClaimLibrarySection({
             onOpenTopic={onOpenTopic}
           />
         ) : (
-          <ClaimForm
-            formValues={formValues}
-            isEditing={false}
-            topics={workspace.topics}
-            sources={workspace.sources}
-            relatedClaimOptions={relatedClaimOptions}
-            validationMessage={validationMessage}
-            onCancel={handleCancelEditor}
-            onSubmit={handleSubmit}
-            onValuesChange={(values) => {
-              setValidationMessage(null);
-              setFormValues(values);
-            }}
+          <EmptyState
+            title={
+              hasActiveFilters ? "No claims match the current filters" : "No claims yet"
+            }
+            description={
+              hasActiveFilters
+                ? "Clear or adjust the workspace filters to see more claim records."
+                : "Add a claim after saving at least one source."
+            }
           />
         )}
 

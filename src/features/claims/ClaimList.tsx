@@ -4,6 +4,7 @@ import type { WorkspaceData } from "../../types/workspace";
 
 interface ClaimListProps {
   claims: ClaimRecord[];
+  hasActiveFilters: boolean;
   selectedClaimId: string | null;
   workspace: WorkspaceData;
   onCreateClaim: () => void;
@@ -13,6 +14,7 @@ interface ClaimListProps {
 
 export function ClaimList({
   claims,
+  hasActiveFilters,
   selectedClaimId,
   workspace,
   onCreateClaim,
@@ -30,48 +32,55 @@ export function ClaimList({
           Add claim
         </button>
       </div>
-
-      <ul className="source-list">
-        {claims.map((claim) => (
-          <li
-            key={claim.id}
-            className={selectedClaimId === claim.id ? "source-card selected" : "source-card"}
-          >
-            <div className="source-card-header">
-              <div>
-                <h3>{claim.text}</h3>
-                <p className="record-meta">
-                  {getTopicName(workspace, claim.topicId)} · {claim.sourceIds.length} linked
-                  source{claim.sourceIds.length === 1 ? "" : "s"}
-                </p>
+      {claims.length > 0 ? (
+        <ul className="source-list">
+          {claims.map((claim) => (
+            <li
+              key={claim.id}
+              className={selectedClaimId === claim.id ? "source-card selected" : "source-card"}
+            >
+              <div className="source-card-header">
+                <div>
+                  <h3>{claim.text}</h3>
+                  <p className="record-meta">
+                    {getTopicName(workspace, claim.topicId)} · {claim.sourceIds.length} linked
+                    source{claim.sourceIds.length === 1 ? "" : "s"}
+                  </p>
+                </div>
+                <span className="pill subtle">
+                  {claim.relatedClaims.length} relationship
+                  {claim.relatedClaims.length === 1 ? "" : "s"}
+                </span>
               </div>
-              <span className="pill subtle">
-                {claim.relatedClaims.length} relationship
-                {claim.relatedClaims.length === 1 ? "" : "s"}
-              </span>
-            </div>
 
-            <p className="source-card-text">{claim.notes || "No notes yet."}</p>
+              <p className="source-card-text">{claim.notes || "No notes yet."}</p>
 
-            <div className="source-card-actions">
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => onSelectClaim(claim.id)}
-              >
-                View claim
-              </button>
-              <button
-                type="button"
-                className="secondary-button"
-                onClick={() => onEditClaim(claim.id)}
-              >
-                Edit claim
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+              <div className="source-card-actions">
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => onSelectClaim(claim.id)}
+                >
+                  View claim
+                </button>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => onEditClaim(claim.id)}
+                >
+                  Edit claim
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty-copy">
+          {hasActiveFilters
+            ? "No claims match the current search and filter settings."
+            : "No claims saved yet."}
+        </p>
+      )}
     </section>
   );
 }

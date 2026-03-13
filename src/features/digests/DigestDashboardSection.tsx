@@ -6,6 +6,8 @@ import type { WorkspaceData } from "../../types/workspace";
 import { formatDigestDate, getTopicDigestRecords } from "./digestUtils";
 
 interface DigestDashboardSectionProps {
+  digestWorkspace: WorkspaceData;
+  hasActiveFilters: boolean;
   workspace: WorkspaceData;
   selectedTopicId: string | null;
   onOpenClaim: (claimId: string) => void;
@@ -21,6 +23,8 @@ const questionReasonLabels: Record<DigestQuestionReason, string> = {
 };
 
 export function DigestDashboardSection({
+  digestWorkspace,
+  hasActiveFilters,
   workspace,
   selectedTopicId,
   onOpenClaim,
@@ -28,7 +32,10 @@ export function DigestDashboardSection({
   onOpenTopic,
   onSelectTopic,
 }: DigestDashboardSectionProps) {
-  const digestRecords = useMemo(() => getTopicDigestRecords(workspace), [workspace]);
+  const digestRecords = useMemo(
+    () => getTopicDigestRecords(digestWorkspace),
+    [digestWorkspace],
+  );
 
   const selectedDigest =
     digestRecords.find((record) => record.topic.id === selectedTopicId) ??
@@ -53,8 +60,16 @@ export function DigestDashboardSection({
     return (
       <>
         <EmptyState
-          title="No topics to digest yet"
-          description="Create a topic, add sources, and link claims to see a rule-based digest."
+          title={
+            hasActiveFilters
+              ? "No digests match the current filters"
+              : "No topics to digest yet"
+          }
+          description={
+            hasActiveFilters
+              ? "Clear or adjust the workspace filters to see more topic digests."
+              : "Create a topic, add sources, and link claims to see a rule-based digest."
+          }
         />
 
         <aside className="side-column">
