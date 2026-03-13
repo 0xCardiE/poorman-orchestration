@@ -25,6 +25,7 @@ describe("claimUtils", () => {
     expect(
       getClaimsForTopic(workspace, "topic-video-analysis").map((claim) => claim.id),
     ).toEqual([
+      "claim-phase-buckets-beat-timelines",
       "claim-manual-summaries-need-citations",
       "claim-timeline-notes-improve-review",
     ]);

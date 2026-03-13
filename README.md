@@ -4,7 +4,7 @@ Niche Research Digest is a local-first web app for collecting sources, organizin
 
 ## Current status
 
-Milestones 1 through 4 are in place with:
+Milestones 1 through 6 are in place with:
 - Vite
 - React
 - TypeScript
@@ -17,8 +17,9 @@ Milestones 1 through 4 are in place with:
 - source create and edit flows with manual summaries and takeaways
 - topic views that group related sources, show shared tags, and surface recent additions
 - claim create and edit flows with explicit source links and simple claim-to-claim relationships
+- digest dashboards grouped by topic with recent additions, unresolved questions, and conflicting claims derived from saved data
 
-The current app is still intentionally straightforward. Claim relationships remain explicit and rule-based, and the digest area is still a seeded lightweight view while deeper workflows land in later milestones.
+The current app is still intentionally straightforward. Claim relationships and digest generation remain explicit and rule-based: recent items are chosen by timestamps, unresolved questions come from saved topic prompts plus deterministic evidence-gap checks, and conflicts only appear when a claim is explicitly marked as contradicting another claim.
 
 ## Project structure
 

@@ -143,6 +143,22 @@ export function createDemoWorkspaceData(): WorkspaceData {
         createdAt: "2026-03-13T08:10:00.000Z",
         updatedAt: "2026-03-13T08:10:00.000Z",
       },
+      {
+        id: "claim-phase-buckets-beat-timelines",
+        text: "Phase-based note buckets are easier to revisit than timeline-linked notes.",
+        sourceIds: ["source-comparison-notes"],
+        topicId: "topic-video-analysis",
+        notes:
+          "This conflicts with the earlier preference for timeline-linked notes and needs comparison against more external examples.",
+        relatedClaims: [
+          {
+            claimId: "claim-timeline-notes-improve-review",
+            relationship: "contradict",
+          },
+        ],
+        createdAt: "2026-03-13T08:25:00.000Z",
+        updatedAt: "2026-03-13T08:25:00.000Z",
+      },
     ],
     digestItems: [
       {
@@ -153,7 +169,10 @@ export function createDemoWorkspaceData(): WorkspaceData {
           "A new internal note compares manual summary patterns and introduces citation expectations.",
         kind: "recent-source",
         sourceIds: ["source-comparison-notes"],
-        claimIds: ["claim-manual-summaries-need-citations"],
+        claimIds: [
+          "claim-manual-summaries-need-citations",
+          "claim-phase-buckets-beat-timelines",
+        ],
         createdAt: "2026-03-13T08:15:00.000Z",
       },
       {

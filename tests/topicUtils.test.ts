@@ -25,6 +25,7 @@ describe("topicUtils", () => {
       "source-postmatch-template",
     ]);
     expect(snapshot?.claims.map((claim) => claim.id)).toEqual([
+      "claim-phase-buckets-beat-timelines",
       "claim-manual-summaries-need-citations",
       "claim-timeline-notes-improve-review",
     ]);

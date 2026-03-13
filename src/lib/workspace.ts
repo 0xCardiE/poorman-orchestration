@@ -15,7 +15,7 @@ export function getSectionCount(
     case "claims":
       return workspace.claims.length;
     case "digests":
-      return workspace.digestItems.length;
+      return workspace.topics.length;
   }
 }
 

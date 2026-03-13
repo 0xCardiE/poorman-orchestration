@@ -21,7 +21,7 @@ describe("createDemoWorkspaceData", () => {
 
     expect(workspace.sources).toHaveLength(3);
     expect(workspace.topics).toHaveLength(2);
-    expect(workspace.claims).toHaveLength(3);
+    expect(workspace.claims).toHaveLength(4);
     expect(workspace.digestItems).toHaveLength(2);
     expect(workspace.meta.seeded).toBe(true);
   });
@@ -33,7 +33,7 @@ describe("workspace helpers", () => {
   it("returns counts for each top-level section", () => {
     expect(getSectionCount(workspace, "sources")).toBe(3);
     expect(getSectionCount(workspace, "topics")).toBe(2);
-    expect(getSectionCount(workspace, "claims")).toBe(3);
+    expect(getSectionCount(workspace, "claims")).toBe(4);
     expect(getSectionCount(workspace, "digests")).toBe(2);
   });
 
@@ -76,7 +76,7 @@ describe("workspace helpers", () => {
     const nextWorkspace = saveClaimRecord(workspace, nextClaim);
 
     expect(nextWorkspace.claims[0]?.id).toBe(nextClaim.id);
-    expect(nextWorkspace.claims).toHaveLength(4);
+    expect(nextWorkspace.claims).toHaveLength(5);
     expect(nextWorkspace.meta.seeded).toBe(false);
     expect(nextWorkspace.meta.lastUpdatedAt).toBe("2026-03-13T10:05:00.000Z");
   });

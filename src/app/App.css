@@ -403,6 +403,18 @@
   background: #fffef9;
 }
 
+.digest-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.digest-card {
+  padding: 0.9rem;
+  border: 1px solid #e6dcc3;
+  border-radius: 0.9rem;
+  background: #fffdf7;
+}
+
 .record-meta,
 .panel p {
   color: #4b5563;
