@@ -4,15 +4,18 @@ Niche Research Digest is a local-first web app for collecting sources, organizin
 
 ## Current status
 
-Milestone 1 is scaffolded with:
+Milestone 2 is in place with:
 - Vite
 - React
 - TypeScript
 - ESLint
 - Vitest
-- the initial feature-oriented folder structure from `AGENTS.md`
+- a basic application shell with header, navigation, and section panels
+- core data model modules for sources, topics, claims, and digest items
+- local-first persistence via `localStorage`
+- seeded demo workspace data for verifying the shell
 
-The current app is intentionally minimal. It provides a simple shell only, without product features yet.
+The current app is still intentionally straightforward. It shows read-only demo records and leaves source editing and deeper workflows for later milestones.
 
 ## Project structure
 
@@ -28,6 +31,18 @@ src/
   lib/
   types/
 tests/
+```
+
+Key local-first modules:
+
+```text
+src/lib/demoData.ts
+src/lib/storage.ts
+src/types/source.ts
+src/types/topic.ts
+src/types/claim.ts
+src/types/digest.ts
+src/types/workspace.ts
 ```
 
 ## Setup
@@ -56,4 +71,4 @@ npm run test
 
 ## Notes
 
-The app shell is intentionally feature-light for Milestone 1. It establishes the TypeScript, linting, testing, and folder conventions that later tasks will build on.
+The app writes a seeded demo workspace into `localStorage` on first load and includes a reset action to restore that demo state. This milestone focuses on the app shell and data model only; create/edit flows are still pending.
