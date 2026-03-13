@@ -2,7 +2,7 @@ import type { WorkspaceData } from "../types/workspace";
 
 export function createDemoWorkspaceData(): WorkspaceData {
   return {
-    version: 1,
+    version: 2,
     meta: {
       name: "Demo workspace",
       seeded: true,
@@ -101,7 +101,7 @@ export function createDemoWorkspaceData(): WorkspaceData {
       {
         id: "claim-timeline-notes-improve-review",
         text: "Timeline-linked notes make post-match review faster to revisit.",
-        sourceId: "source-postmatch-template",
+        sourceIds: ["source-postmatch-template"],
         topicId: "topic-video-analysis",
         notes: "Matches the strongest recommendation from the template article.",
         relatedClaims: [
@@ -116,7 +116,7 @@ export function createDemoWorkspaceData(): WorkspaceData {
       {
         id: "claim-checklists-improve-consistency",
         text: "Repeatable headings improve note quality across scouting sessions.",
-        sourceId: "source-scouting-checklist",
+        sourceIds: ["source-scouting-checklist"],
         topicId: "topic-scouting-notes",
         notes: "Useful, but it does not fully address evidence linking.",
         relatedClaims: [
@@ -131,7 +131,7 @@ export function createDemoWorkspaceData(): WorkspaceData {
       {
         id: "claim-manual-summaries-need-citations",
         text: "Manual summaries are easier to trust when each claim is tied to a source.",
-        sourceId: "source-comparison-notes",
+        sourceIds: ["source-comparison-notes", "source-postmatch-template"],
         topicId: "topic-video-analysis",
         notes: "This likely needs more supporting evidence from external sources.",
         relatedClaims: [

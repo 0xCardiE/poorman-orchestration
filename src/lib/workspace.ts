@@ -1,4 +1,5 @@
 import type { AppSectionId } from "../types/app";
+import type { ClaimRecord } from "../types/claim";
 import type { SourceRecord } from "../types/source";
 import type { WorkspaceData } from "../types/workspace";
 
@@ -24,6 +25,22 @@ export function getTopicName(workspace: WorkspaceData, topicId: string): string 
   );
 }
 
+export function getSourceTitle(
+  workspace: WorkspaceData,
+  sourceId: string,
+): string {
+  return (
+    workspace.sources.find((source) => source.id === sourceId)?.title ??
+    "Unknown source"
+  );
+}
+
+export function getClaimText(workspace: WorkspaceData, claimId: string): string {
+  return (
+    workspace.claims.find((claim) => claim.id === claimId)?.text ?? "Unknown claim"
+  );
+}
+
 export function saveSourceRecord(
   workspace: WorkspaceData,
   source: SourceRecord,
@@ -40,6 +57,26 @@ export function saveSourceRecord(
       ...workspace.meta,
       seeded: false,
       lastUpdatedAt: source.updatedAt,
+    },
+  };
+}
+
+export function saveClaimRecord(
+  workspace: WorkspaceData,
+  claim: ClaimRecord,
+): WorkspaceData {
+  const claimExists = workspace.claims.some((entry) => entry.id === claim.id);
+  const nextClaims = claimExists
+    ? workspace.claims.map((entry) => (entry.id === claim.id ? claim : entry))
+    : [claim, ...workspace.claims];
+
+  return {
+    ...workspace,
+    claims: nextClaims,
+    meta: {
+      ...workspace.meta,
+      seeded: false,
+      lastUpdatedAt: claim.updatedAt,
     },
   };
 }

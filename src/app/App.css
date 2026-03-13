@@ -291,6 +291,17 @@
   border: 0;
 }
 
+.field-hint,
+.form-message {
+  margin: 0;
+  color: #4b5563;
+}
+
+.form-message {
+  color: #8a1c1c;
+  font-weight: 600;
+}
+
 .checkbox-grid {
   display: grid;
   gap: 0.6rem;
@@ -369,6 +380,28 @@
   cursor: pointer;
   font: inherit;
  }
+
+.relationship-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.relationship-row {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.85rem;
+  border: 1px solid #e6dcc3;
+  border-radius: 0.85rem;
+  background: #fffdf7;
+}
+
+.relationship-row select {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #d7d4ca;
+  border-radius: 0.85rem;
+  background: #fffef9;
+}
 
 .record-meta,
 .panel p {

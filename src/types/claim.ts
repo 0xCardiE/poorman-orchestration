@@ -8,7 +8,7 @@ export interface ClaimLink {
 export interface ClaimRecord {
   id: string;
   text: string;
-  sourceId: string;
+  sourceIds: string[];
   topicId: string;
   notes: string;
   relatedClaims: ClaimLink[];

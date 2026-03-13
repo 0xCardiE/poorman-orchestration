@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import {
+  createClaimRecord,
+  createEmptyClaimFormValues,
+} from "../src/features/claims/claimUtils";
+import {
   createEmptySourceFormValues,
   createSourceRecord,
 } from "../src/features/sources/sourceUtils";
 import { createDemoWorkspaceData } from "../src/lib/demoData";
 import {
   getSectionCount,
+  saveClaimRecord,
   getTopicName,
   saveSourceRecord,
 } from "../src/lib/workspace";
@@ -55,5 +60,24 @@ describe("workspace helpers", () => {
     expect(nextWorkspace.sources).toHaveLength(4);
     expect(nextWorkspace.meta.seeded).toBe(false);
     expect(nextWorkspace.meta.lastUpdatedAt).toBe("2026-03-13T10:00:00.000Z");
+  });
+
+  it("saves new claim records and updates workspace metadata", () => {
+    const formValues = createEmptyClaimFormValues("topic-video-analysis");
+    const nextClaim = createClaimRecord(
+      {
+        ...formValues,
+        text: "Fresh claim",
+        sourceIds: ["source-postmatch-template"],
+      },
+      "2026-03-13T10:05:00.000Z",
+    );
+
+    const nextWorkspace = saveClaimRecord(workspace, nextClaim);
+
+    expect(nextWorkspace.claims[0]?.id).toBe(nextClaim.id);
+    expect(nextWorkspace.claims).toHaveLength(4);
+    expect(nextWorkspace.meta.seeded).toBe(false);
+    expect(nextWorkspace.meta.lastUpdatedAt).toBe("2026-03-13T10:05:00.000Z");
   });
 });

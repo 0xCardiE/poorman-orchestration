@@ -16,8 +16,9 @@ Milestones 1 through 4 are in place with:
 - seeded demo workspace data for verifying the shell
 - source create and edit flows with manual summaries and takeaways
 - topic views that group related sources, show shared tags, and surface recent additions
+- claim create and edit flows with explicit source links and simple claim-to-claim relationships
 
-The current app is still intentionally straightforward. Claims and digest areas remain seeded read-only views while deeper workflows land in later milestones.
+The current app is still intentionally straightforward. Claim relationships remain explicit and rule-based, and the digest area is still a seeded lightweight view while deeper workflows land in later milestones.
 
 ## Project structure
 

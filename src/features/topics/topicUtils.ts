@@ -1,3 +1,5 @@
+import { getClaimsForTopic } from "../claims/claimUtils";
+import type { ClaimRecord } from "../../types/claim";
 import type { SourceRecord } from "../../types/source";
 import type { TopicRecord } from "../../types/topic";
 import type { WorkspaceData } from "../../types/workspace";
@@ -16,10 +18,12 @@ export interface RelatedTopicSummary {
 export interface TopicSnapshot {
   topic: TopicRecord;
   sources: SourceRecord[];
+  claims: ClaimRecord[];
   recentSources: SourceRecord[];
+  recentClaims: ClaimRecord[];
   tags: TopicTagStat[];
   relatedTopics: RelatedTopicSummary[];
-  latestSourceAt: string | null;
+  latestActivityAt: string | null;
 }
 
 export function getTopicSnapshot(
@@ -33,14 +37,17 @@ export function getTopicSnapshot(
   }
 
   const sources = getSourcesForTopic(workspace, topicId);
+  const claims = getClaimsForTopic(workspace, topicId);
 
   return {
     topic,
     sources,
+    claims,
     recentSources: getRecentSources(sources),
+    recentClaims: getRecentClaims(claims),
     tags: getTopicTagStats(topic, sources),
     relatedTopics: getRelatedTopics(workspace, topicId),
-    latestSourceAt: getLatestSourceTimestamp(sources),
+    latestActivityAt: getLatestActivityTimestamp(sources, claims),
   };
 }
 
@@ -49,8 +56,8 @@ export function getTopicSnapshots(workspace: WorkspaceData): TopicSnapshot[] {
     .map((topic) => getTopicSnapshot(workspace, topic.id))
     .filter((snapshot): snapshot is TopicSnapshot => snapshot !== null)
     .sort((left, right) => {
-      const leftTimestamp = left.latestSourceAt ?? left.topic.updatedAt;
-      const rightTimestamp = right.latestSourceAt ?? right.topic.updatedAt;
+      const leftTimestamp = left.latestActivityAt ?? left.topic.updatedAt;
+      const rightTimestamp = right.latestActivityAt ?? right.topic.updatedAt;
 
       return rightTimestamp.localeCompare(leftTimestamp);
     });
@@ -69,10 +76,24 @@ function getRecentSources(sources: SourceRecord[]): SourceRecord[] {
     .slice(0, 3);
 }
 
-function getLatestSourceTimestamp(sources: SourceRecord[]): string | null {
-  return [...sources]
+function getRecentClaims(claims: ClaimRecord[]): ClaimRecord[] {
+  return [...claims]
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+    .slice(0, 3);
+}
+
+function getLatestActivityTimestamp(
+  sources: SourceRecord[],
+  claims: ClaimRecord[],
+): string | null {
+  const latestSourceAt = [...sources]
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))[0]
-    ?.createdAt ?? null;
+    ?.createdAt;
+  const latestClaimAt = [...claims]
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
+    ?.updatedAt;
+
+  return [latestSourceAt, latestClaimAt].filter(Boolean).sort().at(-1) ?? null;
 }
 
 function getTopicTagStats(

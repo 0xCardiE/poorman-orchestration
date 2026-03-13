@@ -24,6 +24,10 @@ describe("topicUtils", () => {
       "source-comparison-notes",
       "source-postmatch-template",
     ]);
+    expect(snapshot?.claims.map((claim) => claim.id)).toEqual([
+      "claim-manual-summaries-need-citations",
+      "claim-timeline-notes-improve-review",
+    ]);
     expect(snapshot?.tags.map((entry) => entry.tag)).toEqual([
       "review",
       "analysis",

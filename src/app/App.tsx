@@ -1,12 +1,18 @@
 import { useState } from "react";
 import { EmptyState } from "../components/EmptyState";
 import { SectionNavigation } from "../components/SectionNavigation";
-import { getTopicName, saveSourceRecord } from "../lib/workspace";
+import {
+  getTopicName,
+  saveClaimRecord,
+  saveSourceRecord,
+} from "../lib/workspace";
 import type { AppSectionId } from "../types/app";
 import { useWorkspace } from "./useWorkspace";
 import { navigationItems } from "../lib/navigation";
+import { ClaimLibrarySection } from "../features/claims/ClaimLibrarySection";
 import { SourceLibrarySection } from "../features/sources/SourceLibrarySection";
 import { TopicLibrarySection } from "../features/topics/TopicLibrarySection";
+import type { ClaimRecord } from "../types/claim";
 import type { SourceRecord } from "../types/source";
 import "./App.css";
 
@@ -15,60 +21,6 @@ function renderSectionContent(
   workspace: ReturnType<typeof useWorkspace>["workspace"],
 ) {
   switch (activeSection) {
-    case "topics":
-      return (
-        <section className="panel">
-          <div className="panel-heading">
-            <div>
-              <p className="panel-label">Topic overview</p>
-              <h2>Tracked topics</h2>
-            </div>
-            <span className="pill">{workspace.topics.length} tracked</span>
-          </div>
-          <ul className="record-list">
-            {workspace.topics.map((topic) => (
-              <li key={topic.id} className="record-item">
-                <div className="record-header">
-                  <h3>{topic.name}</h3>
-                  <span className="pill subtle">{topic.tags.length} tags</span>
-                </div>
-                <p>{topic.description}</p>
-                <p className="record-meta">
-                  Open questions: {topic.questionPrompts.length}
-                </p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      );
-    case "claims":
-      return (
-        <section className="panel">
-          <div className="panel-heading">
-            <div>
-              <p className="panel-label">Claim map</p>
-              <h2>Captured claims</h2>
-            </div>
-            <span className="pill">{workspace.claims.length} claims</span>
-          </div>
-          <ul className="record-list">
-            {workspace.claims.map((claim) => (
-              <li key={claim.id} className="record-item">
-                <div className="record-header">
-                  <h3>{claim.text}</h3>
-                  <span className="pill subtle">
-                    {claim.relatedClaims.length} links
-                  </span>
-                </div>
-                <p className="record-meta">
-                  Topic: {getTopicName(workspace, claim.topicId)}
-                </p>
-                <p>{claim.notes}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      );
     case "digests":
       return (
         <section className="panel">
@@ -96,6 +48,8 @@ function renderSectionContent(
         </section>
       );
     case "sources":
+    case "topics":
+    case "claims":
       return null;
   }
 }
@@ -103,6 +57,7 @@ function renderSectionContent(
 export function App() {
   const [activeSection, setActiveSection] = useState<AppSectionId>("sources");
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [selectedTopicId, setSelectedTopicId] = useState<string | null>(null);
   const { resetWorkspace, setWorkspace, workspace } = useWorkspace();
 
@@ -113,6 +68,10 @@ export function App() {
     setWorkspace((currentWorkspace) => saveSourceRecord(currentWorkspace, source));
   }
 
+  function handleSaveClaim(claim: ClaimRecord) {
+    setWorkspace((currentWorkspace) => saveClaimRecord(currentWorkspace, claim));
+  }
+
   function handleOpenTopic(topicId: string) {
     setSelectedTopicId(topicId);
     setActiveSection("topics");
@@ -121,6 +80,11 @@ export function App() {
   function handleOpenSource(sourceId: string) {
     setSelectedSourceId(sourceId);
     setActiveSection("sources");
+  }
+
+  function handleOpenClaim(claimId: string) {
+    setSelectedClaimId(claimId);
+    setActiveSection("claims");
   }
 
   return (
@@ -162,6 +126,7 @@ export function App() {
           <SourceLibrarySection
             workspace={workspace}
             selectedSourceId={selectedSourceId}
+            onOpenClaim={handleOpenClaim}
             onOpenTopic={handleOpenTopic}
             onSaveSource={handleSaveSource}
             onSelectSource={setSelectedSourceId}
@@ -170,8 +135,18 @@ export function App() {
           <TopicLibrarySection
             workspace={workspace}
             selectedTopicId={selectedTopicId}
+            onOpenClaim={handleOpenClaim}
             onOpenSource={handleOpenSource}
             onSelectTopic={setSelectedTopicId}
+          />
+        ) : activeSection === "claims" ? (
+          <ClaimLibrarySection
+            workspace={workspace}
+            selectedClaimId={selectedClaimId}
+            onOpenSource={handleOpenSource}
+            onOpenTopic={handleOpenTopic}
+            onSaveClaim={handleSaveClaim}
+            onSelectClaim={setSelectedClaimId}
           />
         ) : (
           <>
@@ -188,8 +163,8 @@ export function App() {
               </section>
 
               <EmptyState
-                title="Capture and editing flows land next"
-                description={`The ${activeItem.label.toLowerCase()} area is seeded with example records, but create, edit, and linking actions are still intentionally empty in this milestone.`}
+                title="More workflow depth lands next"
+                description={`The ${activeItem.label.toLowerCase()} area is still intentionally lightweight in this milestone, while source, topic, and claim flows remain fully editable.`}
               />
             </aside>
           </>

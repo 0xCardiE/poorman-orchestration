@@ -7,6 +7,7 @@ import { getTopicSnapshots } from "./topicUtils";
 interface TopicLibrarySectionProps {
   workspace: WorkspaceData;
   selectedTopicId: string | null;
+  onOpenClaim: (claimId: string) => void;
   onOpenSource: (sourceId: string) => void;
   onSelectTopic: (topicId: string | null) => void;
 }
@@ -14,6 +15,7 @@ interface TopicLibrarySectionProps {
 export function TopicLibrarySection({
   workspace,
   selectedTopicId,
+  onOpenClaim,
   onOpenSource,
   onSelectTopic,
 }: TopicLibrarySectionProps) {
@@ -65,7 +67,7 @@ export function TopicLibrarySection({
                   <div>
                     <h3>{snapshot.topic.name}</h3>
                     <p className="record-meta">
-                      {snapshot.sources.length} sources ·{" "}
+                      {snapshot.sources.length} sources · {snapshot.claims.length} claims ·{" "}
                       {snapshot.topic.questionPrompts.length} open questions
                     </p>
                   </div>
@@ -166,6 +168,38 @@ export function TopicLibrarySection({
                 </ul>
               ) : (
                 <p>No recent sources for this topic yet.</p>
+              )}
+            </div>
+
+            <div className="detail-section">
+              <p className="panel-label">Linked claims</p>
+              {selectedTopic.claims.length > 0 ? (
+                <ul className="record-list compact-list">
+                  {selectedTopic.claims.map((claim) => (
+                    <li key={claim.id} className="record-item">
+                      <div className="record-header">
+                        <div>
+                          <h3>{claim.text}</h3>
+                          <p className="record-meta">
+                            {claim.sourceIds.length} linked source
+                            {claim.sourceIds.length === 1 ? "" : "s"} ·{" "}
+                            {claim.relatedClaims.length} relationship
+                            {claim.relatedClaims.length === 1 ? "" : "s"}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => onOpenClaim(claim.id)}
+                        >
+                          Open claim
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No claims are linked to this topic yet.</p>
               )}
             </div>
 

@@ -15,6 +15,7 @@ import type { WorkspaceData } from "../../types/workspace";
 interface SourceLibrarySectionProps {
   workspace: WorkspaceData;
   selectedSourceId: string | null;
+  onOpenClaim: (claimId: string) => void;
   onSaveSource: (source: SourceRecord) => void;
   onSelectSource: (sourceId: string | null) => void;
   onOpenTopic: (topicId: string) => void;
@@ -25,6 +26,7 @@ type EditorMode = "create" | "edit" | null;
 export function SourceLibrarySection({
   workspace,
   selectedSourceId,
+  onOpenClaim,
   onSaveSource,
   onSelectSource,
   onOpenTopic,
@@ -126,6 +128,7 @@ export function SourceLibrarySection({
             workspace={workspace}
             onEditSource={handleEditSource}
             onCreateSource={handleCreateSource}
+            onOpenClaim={onOpenClaim}
             onOpenTopic={onOpenTopic}
           />
         ) : (

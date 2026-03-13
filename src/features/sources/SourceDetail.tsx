@@ -1,4 +1,5 @@
 import { getTopicName } from "../../lib/workspace";
+import { getClaimsForSource } from "../claims/claimUtils";
 import type { SourceRecord } from "../../types/source";
 import type { WorkspaceData } from "../../types/workspace";
 
@@ -7,6 +8,7 @@ interface SourceDetailProps {
   workspace: WorkspaceData;
   onEditSource: (sourceId: string) => void;
   onCreateSource: () => void;
+  onOpenClaim: (claimId: string) => void;
   onOpenTopic: (topicId: string) => void;
 }
 
@@ -15,11 +17,13 @@ export function SourceDetail({
   workspace,
   onEditSource,
   onCreateSource,
+  onOpenClaim,
   onOpenTopic,
 }: SourceDetailProps) {
   const topicNames = source.topicIds.map((topicId) =>
     getTopicName(workspace, topicId),
   );
+  const linkedClaims = getClaimsForSource(workspace, source.id);
 
   return (
     <section className="panel">
@@ -110,6 +114,36 @@ export function SourceDetail({
       <div className="detail-section">
         <p className="panel-label">Notes</p>
         <p>{source.notes || "No notes yet."}</p>
+      </div>
+
+      <div className="detail-section">
+        <p className="panel-label">Linked claims</p>
+        {linkedClaims.length > 0 ? (
+          <ul className="record-list compact-list">
+            {linkedClaims.map((claim) => (
+              <li key={claim.id} className="record-item">
+                <div className="record-header">
+                  <div>
+                    <h3>{claim.text}</h3>
+                    <p className="record-meta">
+                      {getTopicName(workspace, claim.topicId)} · {claim.relatedClaims.length}{" "}
+                      relationship{claim.relatedClaims.length === 1 ? "" : "s"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    className="secondary-button"
+                    onClick={() => onOpenClaim(claim.id)}
+                  >
+                    Open claim
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No claims link back to this source yet.</p>
+        )}
       </div>
 
       <button type="button" className="primary-button" onClick={onCreateSource}>
