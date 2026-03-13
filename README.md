@@ -8,6 +8,7 @@ The MVP currently includes:
 
 - a single-page dashboard with navigation for sources, topics, claims, and digests
 - source capture with title, URL, type, publisher, date, topics, tags, notes, manual summary, and takeaways
+- topic creation and editing with name, description, tags, and open questions
 - topic views that collect linked sources and claims, surface shared tags, and show lightweight related-topic connections
 - claim capture with explicit source evidence and support, contradict, or neutral links to other claims
 - digest views that show recent additions, unresolved questions, and explicit contradictions for each topic

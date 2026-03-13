@@ -3,6 +3,7 @@ import {
   createClaimRecord,
   createEmptyClaimFormValues,
 } from "../src/features/claims/claimUtils";
+import { createTopicRecord } from "../src/features/topics/topicFormUtils";
 import {
   createEmptySourceFormValues,
   createSourceRecord,
@@ -13,6 +14,7 @@ import {
   saveClaimRecord,
   getTopicName,
   saveSourceRecord,
+  saveTopicRecord,
 } from "../src/lib/workspace";
 
 describe("createDemoWorkspaceData", () => {
@@ -79,5 +81,53 @@ describe("workspace helpers", () => {
     expect(nextWorkspace.claims).toHaveLength(5);
     expect(nextWorkspace.meta.seeded).toBe(false);
     expect(nextWorkspace.meta.lastUpdatedAt).toBe("2026-03-13T10:05:00.000Z");
+  });
+
+  it("saves new topic records and makes them available across the workspace", () => {
+    const nextTopic = createTopicRecord(
+      {
+        name: "Evidence gaps",
+        description: "Tracks missing evidence and follow-up work.",
+        tagsText: "evidence, follow-up",
+        questionPromptsText: "Which sources are still missing?",
+      },
+      "2026-03-13T10:10:00.000Z",
+    );
+
+    const nextWorkspace = saveTopicRecord(workspace, nextTopic);
+
+    expect(nextWorkspace.topics[0]?.id).toBe(nextTopic.id);
+    expect(nextWorkspace.topics).toHaveLength(3);
+    expect(getTopicName(nextWorkspace, nextTopic.id)).toBe("Evidence gaps");
+    expect(nextWorkspace.meta.seeded).toBe(false);
+    expect(nextWorkspace.meta.lastUpdatedAt).toBe("2026-03-13T10:10:00.000Z");
+  });
+
+  it("updates existing topic records without changing their ids", () => {
+    const existingTopic = workspace.topics[0];
+
+    expect(existingTopic).toBeDefined();
+
+    const updatedTopic = createTopicRecord(
+      {
+        name: "Updated topic name",
+        description: "Updated description",
+        tagsText: "updated, workflow",
+        questionPromptsText: "What changed?",
+      },
+      "2026-03-13T10:15:00.000Z",
+      existingTopic!,
+    );
+
+    const nextWorkspace = saveTopicRecord(workspace, updatedTopic);
+
+    expect(nextWorkspace.topics).toHaveLength(workspace.topics.length);
+    expect(getTopicName(nextWorkspace, existingTopic!.id)).toBe("Updated topic name");
+    expect(nextWorkspace.topics.find((topic) => topic.id === existingTopic!.id)?.tags).toEqual(
+      ["updated", "workflow"],
+    );
+    expect(
+      nextWorkspace.topics.find((topic) => topic.id === existingTopic!.id)?.questionPrompts,
+    ).toEqual(["What changed?"]);
   });
 });

@@ -7,7 +7,11 @@ import {
   getFilteredWorkspaceView,
   getWorkspaceFilterOptions,
 } from "../lib/workspaceQuery";
-import { saveClaimRecord, saveSourceRecord } from "../lib/workspace";
+import {
+  saveClaimRecord,
+  saveSourceRecord,
+  saveTopicRecord,
+} from "../lib/workspace";
 import type { AppSectionId } from "../types/app";
 import { useWorkspace } from "./useWorkspace";
 import { ClaimLibrarySection } from "../features/claims/ClaimLibrarySection";
@@ -16,6 +20,7 @@ import { SourceLibrarySection } from "../features/sources/SourceLibrarySection";
 import { TopicLibrarySection } from "../features/topics/TopicLibrarySection";
 import type { ClaimRecord } from "../types/claim";
 import type { SourceRecord } from "../types/source";
+import type { TopicRecord } from "../types/topic";
 import "./App.css";
 
 export function App() {
@@ -57,6 +62,11 @@ export function App() {
 
   function handleSaveClaim(claim: ClaimRecord) {
     setWorkspace((currentWorkspace) => saveClaimRecord(currentWorkspace, claim));
+    setImportMessage(null);
+  }
+
+  function handleSaveTopic(topic: TopicRecord) {
+    setWorkspace((currentWorkspace) => saveTopicRecord(currentWorkspace, topic));
     setImportMessage(null);
   }
 
@@ -209,6 +219,7 @@ export function App() {
             selectedTopicId={selectedTopicId}
             onOpenClaim={handleOpenClaim}
             onOpenSource={handleOpenSource}
+            onSaveTopic={handleSaveTopic}
             onSelectTopic={setSelectedTopicId}
           />
         ) : activeSection === "claims" ? (

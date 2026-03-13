@@ -1,7 +1,15 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { EmptyState } from "../../components/EmptyState";
 import { getTopicName } from "../../lib/workspace";
+import type { TopicRecord } from "../../types/topic";
 import type { WorkspaceData } from "../../types/workspace";
+import { TopicForm } from "./TopicForm";
+import {
+  createEmptyTopicFormValues,
+  createTopicFormValues,
+  createTopicRecord,
+  type TopicFormValues,
+} from "./topicFormUtils";
 import { getTopicSnapshots } from "./topicUtils";
 
 interface TopicLibrarySectionProps {
@@ -11,8 +19,11 @@ interface TopicLibrarySectionProps {
   selectedTopicId: string | null;
   onOpenClaim: (claimId: string) => void;
   onOpenSource: (sourceId: string) => void;
+  onSaveTopic: (topic: TopicRecord) => void;
   onSelectTopic: (topicId: string | null) => void;
 }
+
+type EditorMode = "create" | "edit" | null;
 
 export function TopicLibrarySection({
   hasActiveFilters,
@@ -21,6 +32,7 @@ export function TopicLibrarySection({
   selectedTopicId,
   onOpenClaim,
   onOpenSource,
+  onSaveTopic,
   onSelectTopic,
 }: TopicLibrarySectionProps) {
   const topicSnapshots = useMemo(() => {
@@ -30,6 +42,10 @@ export function TopicLibrarySection({
       visibleTopicIds.has(snapshot.topic.id),
     );
   }, [visibleTopics, workspace]);
+  const [editorMode, setEditorMode] = useState<EditorMode>(null);
+  const [formValues, setFormValues] = useState<TopicFormValues>(() =>
+    createEmptyTopicFormValues(),
+  );
 
   const selectedTopic =
     topicSnapshots.find((snapshot) => snapshot.topic.id === selectedTopicId) ??
@@ -50,6 +66,47 @@ export function TopicLibrarySection({
     }
   }, [onSelectTopic, selectedTopicId, topicSnapshots]);
 
+  function handleCreateTopic() {
+    setEditorMode("create");
+    setFormValues(createEmptyTopicFormValues());
+  }
+
+  function handleEditTopic(topicId: string) {
+    const topic = workspace.topics.find((entry) => entry.id === topicId);
+
+    if (!topic) {
+      return;
+    }
+
+    onSelectTopic(topic.id);
+    setEditorMode("edit");
+    setFormValues(createTopicFormValues(topic));
+  }
+
+  function handleCancelEditor() {
+    setEditorMode(null);
+    setFormValues(createEmptyTopicFormValues());
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const existingTopic =
+      editorMode === "edit"
+        ? workspace.topics.find((entry) => entry.id === selectedTopicId)
+        : undefined;
+    const nextTopic = createTopicRecord(
+      formValues,
+      new Date().toISOString(),
+      existingTopic,
+    );
+
+    onSaveTopic(nextTopic);
+    onSelectTopic(nextTopic.id);
+    setEditorMode(null);
+    setFormValues(createTopicFormValues(nextTopic));
+  }
+
   return (
     <>
       <section className="panel">
@@ -58,7 +115,16 @@ export function TopicLibrarySection({
             <p className="panel-label">Topic overview</p>
             <h2>Tracked topics</h2>
           </div>
-          <span className="pill">{topicSnapshots.length} tracked</span>
+          <div className="panel-heading-actions">
+            <span className="pill">{topicSnapshots.length} tracked</span>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleCreateTopic}
+            >
+              New topic
+            </button>
+          </div>
         </div>
 
         {topicSnapshots.length > 0 ? (
@@ -110,6 +176,13 @@ export function TopicLibrarySection({
                     <button
                       type="button"
                       className="secondary-button"
+                      onClick={() => handleEditTopic(snapshot.topic.id)}
+                    >
+                      Edit topic
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary-button"
                       onClick={() => onSelectTopic(snapshot.topic.id)}
                     >
                       View topic
@@ -129,14 +202,31 @@ export function TopicLibrarySection({
       </section>
 
       <aside className="side-column">
-        {selectedTopic ? (
+        {editorMode ? (
+          <TopicForm
+            formValues={formValues}
+            isEditing={editorMode === "edit"}
+            onCancel={handleCancelEditor}
+            onSubmit={handleSubmit}
+            onValuesChange={setFormValues}
+          />
+        ) : selectedTopic ? (
           <section className="panel">
             <div className="panel-heading">
               <div>
                 <p className="panel-label">Topic detail</p>
                 <h2>{selectedTopic.topic.name}</h2>
               </div>
-              <span className="pill">{selectedTopic.sources.length} sources</span>
+              <div className="panel-heading-actions">
+                <span className="pill">{selectedTopic.sources.length} sources</span>
+                <button
+                  type="button"
+                  className="secondary-button"
+                  onClick={() => handleEditTopic(selectedTopic.topic.id)}
+                >
+                  Edit topic
+                </button>
+              </div>
             </div>
 
             <p>{selectedTopic.topic.description}</p>
@@ -299,8 +389,8 @@ export function TopicLibrarySection({
           <p className="panel-label">Current section</p>
           <h2>Topics</h2>
           <p>
-            Topic views stay lightweight by reusing the source assignments that
-            already exist in the workspace.
+            Create lightweight topics with tags and open questions, then reuse
+            those records everywhere sources, claims, and digests reference them.
           </p>
           <p className="record-meta">
             Last workspace update: {workspace.meta.lastUpdatedAt.slice(0, 10)}

@@ -1,6 +1,7 @@
 import type { AppSectionId } from "../types/app";
 import type { ClaimRecord } from "../types/claim";
 import type { SourceRecord } from "../types/source";
+import type { TopicRecord } from "../types/topic";
 import type { WorkspaceData } from "../types/workspace";
 
 export function getSectionCount(
@@ -77,6 +78,26 @@ export function saveClaimRecord(
       ...workspace.meta,
       seeded: false,
       lastUpdatedAt: claim.updatedAt,
+    },
+  };
+}
+
+export function saveTopicRecord(
+  workspace: WorkspaceData,
+  topic: TopicRecord,
+): WorkspaceData {
+  const topicExists = workspace.topics.some((entry) => entry.id === topic.id);
+  const nextTopics = topicExists
+    ? workspace.topics.map((entry) => (entry.id === topic.id ? topic : entry))
+    : [topic, ...workspace.topics];
+
+  return {
+    ...workspace,
+    topics: nextTopics,
+    meta: {
+      ...workspace.meta,
+      seeded: false,
+      lastUpdatedAt: topic.updatedAt,
     },
   };
 }
