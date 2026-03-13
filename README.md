@@ -1,3 +1,38 @@
+# Browser Football Game
+
+A lightweight 2D browser football game (Phaser 3 + Vite + TypeScript).
+
+## Setup
+
+```bash
+npm install
+npm run dev
+```
+
+Open the URL shown (e.g. http://localhost:5173).
+
+## Controls
+
+- **Menu:** SPACE — start match
+- **Match:** Arrow keys — move · **X** — pass · **C** — shoot · **R** — restart match
+
+## Commands
+
+| Command       | Description        |
+|---------------|--------------------|
+| `npm run dev` | Start dev server   |
+| `npm run build` | Type-check + build |
+| `npm run preview` | Preview production build |
+| `npm run test` | Run tests         |
+| `npm run lint` | Lint source       |
+
+## Current status
+
+- **Done:** Full v1: scaffold, pitch, player & opponent, ball, possession, pass, shoot, goals, score, 90s timer, restart. Desktop keyboard controls.
+- **Optional later:** Basic mobile controls, extra polish.
+
+---
+
 # Poorman AI orchestration
 
 A minimal orchestration setup for running an AI coding agent over a task queue. You define the work in **AGENTS.md**, **PLANS.md**, and **tasks/todo/**; a runner script runs the agent in a loop and moves tasks to **tasks/done/** or **tasks/failed/**.
