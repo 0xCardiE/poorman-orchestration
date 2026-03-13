@@ -1,4 +1,10 @@
-# Niche Research Digest
+# Poorman AI orchestration
+
+This repo is a lightweight orchestration setup for running an AI coding agent (e.g. Codex) over a task queue: **AGENTS.md**, **PLANS.md**, and **tasks/todo/** define the work; **run.sh** runs the loop. The current project built with it is the app below.
+
+---
+
+## Niche Research Digest
 
 Niche Research Digest is a local-first web app for collecting sources, organizing research by topic, linking claims across sources, and producing concise topic digests.
 
