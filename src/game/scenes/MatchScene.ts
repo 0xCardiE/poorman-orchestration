@@ -43,10 +43,21 @@ import {
 TEAM_SIZE,
   SET_PIECE_AIM_SPEED,
   SET_PIECE_POWER_MAX,
+  REPLAY_SNAPSHOT_INTERVAL_MS,
+  REPLAY_PLAYBACK_MS,
+  REPLAY_RECORD_SEC,
 } from '../config/constants';
 import { formationToWorldPositions } from '../config/formations';
 
 type SetPieceType = 'throw-in' | 'goal-kick' | 'corner' | null;
+
+interface ReplaySnapshot {
+  ball: { x: number; y: number };
+  players: { x: number; y: number }[];
+  opponents: { x: number; y: number }[];
+  keeperPlayer: { x: number; y: number };
+  keeperOpponent: { x: number; y: number };
+}
 
 interface OutfieldPlayer {
   sprite: Phaser.Physics.Arcade.Image;
@@ -97,6 +108,14 @@ export class MatchScene extends Phaser.Scene {
   private keeperDiffMult = KEEPER_DIFFICULTY_MEDIUM;
   private formationKey = '2-1-2';
 
+  private replayBuffer: ReplaySnapshot[] = [];
+  private lastReplayRecordTime = 0;
+  private replayMode = false;
+  private replayStartTime = 0;
+  private replaySnapshots: ReplaySnapshot[] = [];
+  private lastReplayScorer: 'player' | 'opponent' | null = null;
+  private goalOverlayText!: Phaser.GameObjects.Text;
+
   constructor() {
     super({ key: 'Match' });
   }
@@ -115,6 +134,9 @@ export class MatchScene extends Phaser.Scene {
     this.shootChargeStart = 0;
     this.lastTackleTime = 0;
     this.keeperDiffMult = KEEPER_DIFFICULTY_MEDIUM;
+    this.replayBuffer = [];
+    this.lastReplayRecordTime = 0;
+    this.replayMode = false;
 
     this.drawPitch();
     this.createPlayerTexture();
@@ -128,6 +150,11 @@ export class MatchScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setScrollFactor(0);
     this.staminaBar = this.add.graphics().setScrollFactor(0);
+    this.goalOverlayText = this.add
+      .text(400, 280, '', { fontSize: '42px', color: '#fff', fontStyle: 'bold' })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setVisible(false);
     this.refreshHud();
   }
 
@@ -271,6 +298,10 @@ export class MatchScene extends Phaser.Scene {
       this.scene.restart();
       return;
     }
+    if (this.replayMode) {
+      this.updateReplay(delta);
+      return;
+    }
     if (this.halfTimeActive) {
       this.hudText.setText(`HALF TIME — Score ${this.scorePlayer}-${this.scoreOpponent} — Press X or wait 3s for 2nd half`);
       this.updateHalfTime(delta);
@@ -319,7 +350,66 @@ export class MatchScene extends Phaser.Scene {
     this.updateOpponentAI(delta);
     this.updatePassAndShoot(delta);
     this.clampAllToPitch();
+    this.recordReplaySnapshot();
     this.refreshHud();
+  }
+
+  private recordReplaySnapshot(): void {
+    const now = Date.now();
+    if (now - this.lastReplayRecordTime < REPLAY_SNAPSHOT_INTERVAL_MS) return;
+    this.lastReplayRecordTime = now;
+    const snap: ReplaySnapshot = {
+      ball: { x: this.ball.x, y: this.ball.y },
+      players: this.players.map((p) => ({ x: p.sprite.x, y: p.sprite.y })),
+      opponents: this.opponents.map((o) => ({ x: o.sprite.x, y: o.sprite.y })),
+      keeperPlayer: { x: this.keeperPlayer.x, y: this.keeperPlayer.y },
+      keeperOpponent: { x: this.keeperOpponent.x, y: this.keeperOpponent.y },
+    };
+    this.replayBuffer.push(snap);
+    const maxFrames = (REPLAY_RECORD_SEC * 1000) / REPLAY_SNAPSHOT_INTERVAL_MS;
+    if (this.replayBuffer.length > maxFrames) this.replayBuffer.shift();
+  }
+
+  private updateReplay(_delta: number): void {
+    const elapsed = Date.now() - this.replayStartTime;
+    if (elapsed >= REPLAY_PLAYBACK_MS || Phaser.Input.Keyboard.JustDown(this.passKey)) {
+      this.goalOverlayText.setVisible(false);
+      this.replayMode = false;
+      this.replaySnapshots = [];
+      this.lastReplayScorer = null;
+      this.resetPositionsAfterGoal();
+      return;
+    }
+    const t = elapsed / REPLAY_PLAYBACK_MS;
+    const frameIndex = t * (this.replaySnapshots.length - 1);
+    const i0 = Math.floor(frameIndex);
+    const i1 = Math.min(i0 + 1, this.replaySnapshots.length - 1);
+    const frac = frameIndex - i0;
+    const s0 = this.replaySnapshots[i0];
+    const s1 = this.replaySnapshots[i1];
+    if (!s0) return;
+    this.ball.x = s0.ball.x + (s1 ? (s1.ball.x - s0.ball.x) * frac : 0);
+    this.ball.y = s0.ball.y + (s1 ? (s1.ball.y - s0.ball.y) * frac : 0);
+    this.ball.setVelocity(0, 0);
+    for (let i = 0; i < this.players.length; i++) {
+      this.players[i].sprite.x = s0.players[i].x + (s1 ? (s1.players[i].x - s0.players[i].x) * frac : 0);
+      this.players[i].sprite.y = s0.players[i].y + (s1 ? (s1.players[i].y - s0.players[i].y) * frac : 0);
+      this.players[i].sprite.setVelocity(0, 0);
+    }
+    for (let i = 0; i < this.opponents.length; i++) {
+      this.opponents[i].sprite.x = s0.opponents[i].x + (s1 ? (s1.opponents[i].x - s0.opponents[i].x) * frac : 0);
+      this.opponents[i].sprite.y = s0.opponents[i].y + (s1 ? (s1.opponents[i].y - s0.opponents[i].y) * frac : 0);
+      this.opponents[i].sprite.setVelocity(0, 0);
+    }
+    this.keeperPlayer.x = s0.keeperPlayer.x + (s1 ? (s1.keeperPlayer.x - s0.keeperPlayer.x) * frac : 0);
+    this.keeperPlayer.y = s0.keeperPlayer.y + (s1 ? (s1.keeperPlayer.y - s0.keeperPlayer.y) * frac : 0);
+    this.keeperPlayer.setVelocity(0, 0);
+    this.keeperOpponent.x = s0.keeperOpponent.x + (s1 ? (s1.keeperOpponent.x - s0.keeperOpponent.x) * frac : 0);
+    this.keeperOpponent.y = s0.keeperOpponent.y + (s1 ? (s1.keeperOpponent.y - s0.keeperOpponent.y) * frac : 0);
+    this.keeperOpponent.setVelocity(0, 0);
+    const who = this.lastReplayScorer === 'player' ? 'Your goal!' : 'Opponent goal!';
+    this.goalOverlayText.setText(`${who}\nReplay — X to skip`);
+    this.goalOverlayText.setVisible(true);
   }
 
   private updateHalfTime(_delta: number): void {
@@ -575,11 +665,18 @@ export class MatchScene extends Phaser.Scene {
       this.ball.y <= GOAL_BOTTOM;
     if (inLeftGoal) {
       this.scoreOpponent += 1;
-      this.resetPositionsAfterGoal();
+      this.startReplay('opponent');
     } else if (inRightGoal) {
       this.scorePlayer += 1;
-      this.resetPositionsAfterGoal();
+      this.startReplay('player');
     }
+  }
+
+  private startReplay(scorer: 'player' | 'opponent'): void {
+    this.replayMode = true;
+    this.replayStartTime = Date.now();
+    this.replaySnapshots = [...this.replayBuffer];
+    this.lastReplayScorer = scorer;
   }
 
   private checkOutOfPlay(): void {

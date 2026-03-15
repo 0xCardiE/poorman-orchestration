@@ -24,6 +24,7 @@ Open the URL shown (e.g. http://localhost:5173).
   - **Tab** — switch controlled player (5 per team)
   - **R** — restart match
 - **Set pieces (throw-in/corner):** Arrows aim, Up/Down power, X to take
+- **After a goal:** A short replay of the last few seconds plays automatically; press **X** to skip and restart from centre
 
 ## Commands
 

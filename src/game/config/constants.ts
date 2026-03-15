@@ -67,3 +67,9 @@ export const KEEPER_DIFFICULTY_HARD = 1;
 export const TEAM_SIZE = 5;
 export const DIFFICULTY_LEVELS = ['easy', 'medium', 'hard'] as const;
 export type Difficulty = (typeof DIFFICULTY_LEVELS)[number];
+
+/** Post-goal replay: how long to record (ms) and interval between snapshots */
+export const REPLAY_RECORD_SEC = 5;
+export const REPLAY_SNAPSHOT_INTERVAL_MS = 80;
+/** How long the replay plays back (ms); can be less than recorded for faster replay */
+export const REPLAY_PLAYBACK_MS = 4000;
